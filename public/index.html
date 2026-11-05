@@ -28,6 +28,7 @@
     <nav class="main-nav" aria-label="Primary">
       <button class="nav-btn active" data-nav="search">Explore hotels</button>
       <button class="nav-btn" data-nav="history">My bookings</button>
+      <button class="nav-btn" id="authButton" data-nav="auth">Sign in</button>
     </nav>
   </div>
 </header>
@@ -137,6 +138,32 @@
     </div>
   </section>
 
+  <!-- ACCOUNT / JWT SIGN-IN VIEW -->
+  <section id="view-auth" class="view">
+    <div class="container narrow auth-layout">
+      <div class="auth-copy">
+        <p class="eyebrow">Your StayBook account</p>
+        <h1>Keep every stay<br>in one place.</h1>
+        <p>Sign in to confirm a room and see your booking history.</p>
+      </div>
+      <form id="authForm" class="auth-panel" novalidate>
+        <h2 id="authTitle">Welcome back</h2>
+        <p id="authIntro" class="panel-sub">Use your account to continue.</p>
+        <label id="authNameLabel" class="hidden" for="authName">Your name</label>
+        <input id="authName" class="hidden" type="text" autocomplete="name" maxlength="80" placeholder="Name">
+        <label for="authEmail">Email address</label>
+        <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        <label for="authPassword">Password</label>
+        <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters">
+        <p id="authError" class="field-hint error hidden" role="alert"></p>
+        <button id="authSubmit" class="btn btn-coral btn-block" type="submit">Sign in</button>
+        <p class="auth-switch"><span id="authSwitchText">New to StayBook?</span>
+          <button id="authModeToggle" type="button">Create an account</button></p>
+        <button class="back-btn" type="button" data-nav="search">Continue exploring</button>
+      </form>
+    </div>
+  </section>
+
   <!-- BOOKING FORM VIEW -->
   <section id="view-booking" class="view">
     <div class="container narrow">
@@ -179,9 +206,6 @@
           <p class="panel-sub">We hold the room the moment you confirm.</p>
 
           <form id="bookingForm" novalidate>
-            <label for="userId">Your name / User ID</label>
-            <input type="text" id="userId" required autocomplete="name" placeholder="e.g. sanju01">
-
             <div class="form-row">
               <div class="form-field">
                 <label for="checkIn">Check-in</label>
@@ -236,8 +260,8 @@
       </div>
 
       <div class="user-bar">
-        <input type="text" id="historyUserId" placeholder="Type your User ID to load your trips" autocomplete="off">
-        <button class="btn btn-primary" id="btnLoadHistory">Load trips</button>
+        <p id="historyAccount">Your account booking history</p>
+        <button class="btn btn-primary" id="btnLoadHistory">Refresh trips</button>
       </div>
 
       <div id="statsStrip" class="stats hidden"></div>

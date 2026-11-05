@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.DS_Store
+Thumbs.db
+# Unrelated personal files currently alongside this project
+output/
+outputs/
+report_charts/
+build_report.py
+supplementary_datasets.csv

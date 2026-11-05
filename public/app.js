@@ -6,6 +6,8 @@
 
 const API_BASE = "/api";
 const USER_KEY = "staybook.user";
+const TOKEN_KEY = "staybook.token";
+const ACCOUNT_KEY = "staybook.account";
 const SEARCH_KEY = "staybook.search";
 
 const $ = (sel) => document.querySelector(sel);
@@ -28,7 +30,10 @@ function nightsBetween(a, b) {
 }
 
 async function api(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, options);
+  const headers = new Headers(options.headers || {});
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "Something went wrong");
   return data;
@@ -37,6 +42,8 @@ async function api(path, options = {}) {
 // ---------- state ----------
 let currentHotel = null;
 let currentRoom = null;
+let pendingRoom = null;
+let authMode = "login";
 let lastSearch = JSON.parse(localStorage.getItem(SEARCH_KEY) || "null") || null;
 
 function saveSearch(search) {
@@ -122,7 +129,9 @@ function showView(name) {
 }
 
 $$("[data-nav]").forEach((el) => {
-  el.addEventListener("click", () => showView(el.dataset.nav));
+  el.addEventListener("click", () => {
+    if (el.dataset.nav !== "signout") showView(el.dataset.nav);
+  });
 });
 
 $$(".back-btn").forEach((btn) => {
@@ -309,8 +318,91 @@ function renderRooms(rooms) {
   });
 }
 
+// ---------- guest account / JWT session ----------
+function updateAuthButton() {
+  const button = $("#authButton");
+  const signedIn = !!localStorage.getItem(TOKEN_KEY);
+  button.textContent = signedIn ? "Sign out" : "Sign in";
+  button.dataset.nav = signedIn ? "signout" : "auth";
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const registering = mode === "register";
+  $("#authTitle").textContent = registering ? "Create your account" : "Welcome back";
+  $("#authIntro").textContent = registering ? "One account keeps your trips together." : "Use your account to continue.";
+  $("#authNameLabel").classList.toggle("hidden", !registering);
+  $("#authName").classList.toggle("hidden", !registering);
+  $("#authName").required = registering;
+  $("#authPassword").autocomplete = registering ? "new-password" : "current-password";
+  $("#authSubmit").textContent = registering ? "Create account" : "Sign in";
+  $("#authSwitchText").textContent = registering ? "Already have an account?" : "New to StayBook?";
+  $("#authModeToggle").textContent = registering ? "Sign in" : "Create an account";
+  $("#authError").classList.add("hidden");
+}
+
+$("#authModeToggle").addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
+$("#authButton").addEventListener("click", (event) => {
+  if (event.currentTarget.dataset.nav !== "signout") return;
+  event.preventDefault();
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ACCOUNT_KEY);
+  localStorage.removeItem(USER_KEY);
+  updateAuthButton();
+  toast("You have signed out.");
+  showView("search");
+});
+
+$("#authForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const error = $("#authError");
+  error.classList.add("hidden");
+  const button = $("#authSubmit");
+  button.disabled = true;
+  button.textContent = authMode === "register" ? "Creating account…" : "Signing in…";
+  try {
+    const result = await api(`/auth/${authMode}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: $("#authName").value.trim(),
+        email: $("#authEmail").value.trim(),
+        password: $("#authPassword").value
+      })
+    });
+    localStorage.setItem(TOKEN_KEY, result.token);
+    localStorage.setItem(ACCOUNT_KEY, JSON.stringify(result.user));
+    localStorage.setItem(USER_KEY, String(result.user.id));
+    updateAuthButton();
+    toast(authMode === "register" ? "Account created." : "Welcome back.");
+    $("#authForm").reset();
+    if (pendingRoom) {
+      const room = pendingRoom;
+      pendingRoom = null;
+      openBooking(room);
+    } else {
+      showView("search");
+    }
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.remove("hidden");
+  } finally {
+    button.disabled = false;
+    button.textContent = authMode === "register" ? "Create account" : "Sign in";
+  }
+});
+
+updateAuthButton();
+setAuthMode("login");
+
 // ---------- booking form ----------
 function openBooking(room) {
+  if (!localStorage.getItem(TOKEN_KEY)) {
+    pendingRoom = room;
+    showView("auth");
+    toast("Sign in before confirming a room.", "info");
+    return;
+  }
   currentRoom = room;
   $("#bookingHotelName").textContent = currentHotel ? currentHotel.name : "—";
   $("#bookingHotelPlace").textContent = currentHotel
@@ -320,7 +412,6 @@ function openBooking(room) {
   $("#bookingRoomNo").textContent = room.roomNumber;
   $("#bookingRate").textContent = room.price;
 
-  $("#userId").value = localStorage.getItem(USER_KEY) || "";
   $("#bookingForm").reset();
   $("#guests").value = lastSearch && lastSearch.guests ? String(lastSearch.guests) : "2";
   $("#checkIn").value = lastSearch && lastSearch.checkIn ? lastSearch.checkIn : "";
@@ -404,16 +495,10 @@ function syncOrderPanel() {
 $("#bookingForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const userId = $("#userId").value.trim();
   const checkIn = $("#checkIn").value;
   const checkOut = $("#checkOut").value;
   const guests = Number($("#guests").value);
 
-  if (!userId) {
-    toast("Enter your name / user ID to continue.", "error");
-    $("#userId").focus();
-    return;
-  }
   if (nightsBetween(checkIn, checkOut) <= 0) {
     toast("Choose a check-out date after check-in.", "error");
     return;
@@ -432,7 +517,6 @@ $("#bookingForm").addEventListener("submit", async (e) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId,
         hotelId: currentHotel.id,
         roomId: currentRoom.id,
         checkIn,
@@ -441,7 +525,6 @@ $("#bookingForm").addEventListener("submit", async (e) => {
       }),
     });
 
-    localStorage.setItem(USER_KEY, userId);
     renderVoucher(booking);
     showView("confirm");
     toast(`Booking confirmed. Your ID: ${booking.id}`);
@@ -499,30 +582,18 @@ function renderVoucher(b) {
 
 // ---------- booking history ----------
 function maybeLoadHistory() {
-  const stored = localStorage.getItem(USER_KEY);
-  if (stored) {
-    $("#historyUserId").value = stored;
-    loadHistory();
-  } else {
-    $("#historyList").innerHTML = "";
-    $("#statsStrip").classList.add("hidden");
-    $("#historyEmpty").classList.remove("hidden");
+  if (!localStorage.getItem(TOKEN_KEY)) {
+    showView("auth");
+    toast("Sign in to see your bookings.", "info");
+    return;
   }
+  loadHistory();
 }
 
 $("#btnLoadHistory").addEventListener("click", loadHistory);
-$("#historyUserId").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") loadHistory();
-});
 
 async function loadHistory() {
-  const userId = $("#historyUserId").value.trim();
-  if (!userId) {
-    toast("Type your User ID first.", "error");
-    return;
-  }
-  localStorage.setItem(USER_KEY, userId);
-
+  if (!localStorage.getItem(TOKEN_KEY)) return maybeLoadHistory();
   const list = $("#historyList");
   const stats = $("#statsStrip");
   const empty = $("#historyEmpty");
@@ -531,7 +602,7 @@ async function loadHistory() {
   list.innerHTML = skeletonGrid(3, false);
 
   try {
-    const bookings = await api(`/bookings/${encodeURIComponent(userId)}`);
+    const bookings = await api("/bookings/me");
     renderHistory(bookings);
   } catch (err) {
     list.innerHTML = "";
@@ -646,15 +717,7 @@ function attachFeedback(item, b) {
 }
 
 // ---------- confirm → view history shortcut ----------
-$("#btnGoHistory").addEventListener("click", () => {
-  const userId = localStorage.getItem(USER_KEY);
-  if (userId) {
-    $("#historyUserId").value = userId;
-    loadHistory();
-  } else {
-    showView("history");
-  }
-});
+$("#btnGoHistory").addEventListener("click", () => showView("history"));
 
 // ---------- initial load ----------
 showView("search");

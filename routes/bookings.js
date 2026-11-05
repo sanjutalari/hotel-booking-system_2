@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/data");
+const { authenticate } = require("../middleware/auth");
+
+router.use(authenticate);
 
 function nightsBetween(checkIn, checkOut) {
   const start = new Date(checkIn);
@@ -11,7 +14,8 @@ function nightsBetween(checkIn, checkOut) {
 
 // POST /api/bookings   { userId, hotelId, roomId, checkIn, checkOut, guests }
 router.post("/", (req, res) => {
-  const { userId, hotelId, roomId, checkIn, checkOut, guests } = req.body;
+  const { hotelId, roomId, checkIn, checkOut, guests } = req.body;
+  const userId = req.user.id;
 
   if (!userId || !hotelId || !roomId || !checkIn || !checkOut || !guests) {
     return res.status(400).json({ error: "Missing required booking fields" });
@@ -51,7 +55,7 @@ router.post("/", (req, res) => {
 // PUT /api/bookings/:id/cancel
 router.put("/:id/cancel", (req, res) => {
   const booking = db.bookings.find(b => b.id === req.params.id);
-  if (!booking) return res.status(404).json({ error: "Booking not found" });
+  if (!booking || booking.userId !== req.user.id) return res.status(404).json({ error: "Booking not found" });
 
   booking.status = "cancelled";
 
@@ -64,7 +68,7 @@ router.put("/:id/cancel", (req, res) => {
 // POST /api/bookings/:id/feedback  { score: 1..5 }
 router.post("/:id/feedback", (req, res) => {
   const booking = db.bookings.find((b) => b.id === req.params.id);
-  if (!booking) return res.status(404).json({ error: "Booking not found" });
+  if (!booking || booking.userId !== req.user.id) return res.status(404).json({ error: "Booking not found" });
   const score = Number(req.body.score);
   if (!score || score < 1 || score > 5) {
     return res.status(400).json({ error: "Feedback score must be between 1 and 5" });
@@ -75,9 +79,9 @@ router.post("/:id/feedback", (req, res) => {
 
 // GET /api/bookings/:userId  -> booking history for a user
 // Joins the related Hotel + Room so the frontend can show names without extra calls.
-router.get("/:userId", (req, res) => {
+router.get("/me", (req, res) => {
   const history = db.bookings
-    .filter((b) => b.userId === req.params.userId)
+    .filter((b) => b.userId === req.user.id)
     .map((b) => {
       const hotel = db.hotels.find((h) => h.id === b.hotelId);
       const room = db.rooms.find((r) => r.id === b.roomId);
