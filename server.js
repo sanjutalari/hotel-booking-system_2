@@ -21,8 +21,7 @@ if (process.env.NODE_ENV === "production") app.set("trust proxy", 1);
 app.use(express.json());
 
 // Serve the frontend (public/) as static files
-app.get("/admin", (req, res) => res.redirect("/admin/"));
-app.get("/admin/", (req, res) => {
+app.get(["/admin", "/admin/"], (req, res) => {
   res.sendFile(path.join(__dirname, "public-admin", "admin.html"));
 });
 app.use("/admin", express.static(path.join(__dirname, "public-admin")));
