@@ -11,13 +11,35 @@
 </head>
 <body>
 
+<section id="adminLogin" class="admin-login-shell">
+  <div class="admin-login-card">
+    <span class="admin-login-mark" aria-hidden="true">S.</span>
+    <p class="admin-login-kicker">StayBook administration</p>
+    <h1>Make every stay count.</h1>
+    <p class="admin-login-copy">Sign in to manage properties, inspect standards and review guest bookings.</p>
+    <form id="adminLoginForm" class="admin-login-form">
+      <label for="adminEmail">Email address</label>
+      <input id="adminEmail" type="email" autocomplete="username" required placeholder="Administrator email">
+      <label for="adminPassword">Password</label>
+      <input id="adminPassword" type="password" autocomplete="current-password" required>
+      <p id="adminLoginError" class="admin-login-error hidden" role="alert"></p>
+      <button id="adminLoginSubmit" class="btn btn-primary btn-block" type="submit">Sign in to admin</button>
+    </form>
+    <a class="admin-login-back" href="/">Return to guest sign-in</a>
+  </div>
+</section>
+
+<div id="adminDashboard" class="hidden">
 <header class="site-header">
   <div class="container header-inner">
     <div class="brand">
       <span class="brand-text">StayBook<span class="brand-dot">.</span></span>
       <span class="admin-tag">Admin console</span>
     </div>
-    <a class="site-link" href="http://localhost:3000" target="_blank" rel="noopener">Open customer site ↗</a>
+    <div class="admin-header-actions">
+      <a class="site-link" id="customerSiteLink" href="/">Open customer site</a>
+      <button class="site-link admin-logout" id="adminLogout" type="button">Sign out</button>
+    </div>
   </div>
 </header>
 
@@ -134,6 +156,7 @@
   </section>
 
 </main>
+</div>
 
 <div id="toastStack" class="toast-stack" aria-live="assertive"></div>
 

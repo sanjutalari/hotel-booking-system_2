@@ -338,6 +338,7 @@ function setAuthMode(mode) {
   $("#authSubmit").textContent = registering ? "Create account" : "Sign in";
   $("#authSwitchText").textContent = registering ? "Already have an account?" : "New to StayBook?";
   $("#authModeToggle").textContent = registering ? "Sign in" : "Create an account";
+  $("#adminLoginLink").classList.toggle("hidden", registering);
   $("#authError").classList.add("hidden");
 }
 

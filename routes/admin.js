@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/data");
+const { authenticate, requireAdmin } = require("../middleware/auth");
+
+router.use(authenticate, requireAdmin);
 
 const DEFAULT_BED_IMAGE = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800";
 const DEFAULT_BATH_IMAGE = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800";

@@ -87,7 +87,7 @@ It can be changed to another person's ID. The server uses the account ID in the 
 Page JavaScript can read them, so an XSS flaw could expose a token. A production solution may use secure HTTP-only cookies with CSRF protection.
 
 **27. Is the admin console protected by JWT?**  
-No. It is currently a local demo console without authentication. It should be secured before public deployment.
+Yes. Admin login verifies the configured email and bcrypt password hash, then issues a 2-hour JWT with the admin role. The admin API checks the token signature, expiry, and role before allowing hotel, room, booking, or inspection actions.
 
 ## Booking and frontend
 

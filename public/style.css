@@ -947,5 +947,7 @@ img { display: block; max-width: 100%; }
 .auth-panel input:focus { border-color: var(--teal); outline: 3px solid rgba(15,123,108,.16); }
 .auth-switch { margin: 6px 0 0; text-align: center; color: var(--muted); font-size: 13px; }
 .auth-switch button { border: 0; background: none; color: var(--teal-ink); font: inherit; font-weight: 800; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.auth-admin-link { justify-self: center; color: var(--petrol-2); font-size: 13px; font-weight: 700; text-underline-offset: 4px; }
+.auth-admin-link:hover { color: var(--teal-ink); }
 .auth-panel .back-btn { justify-self: center; }
 @media (max-width: 720px) { .auth-layout { grid-template-columns: 1fr; gap: 24px; padding-top: 34px; } .auth-copy h1 { font-size: 40px; } }

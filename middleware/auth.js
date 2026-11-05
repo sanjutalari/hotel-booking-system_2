@@ -8,11 +8,23 @@ function authenticate(req, res, next) {
   }
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: String(payload.sub), name: payload.name, email: payload.email };
+    req.user = {
+      id: String(payload.sub),
+      name: payload.name,
+      email: payload.email,
+      role: payload.role || "guest"
+    };
     next();
   } catch {
     return res.status(401).json({ error: "Your session expired. Sign in again." });
   }
 }
 
-module.exports = { authenticate };
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ error: "Administrator access is required." });
+  }
+  next();
+}
+
+module.exports = { authenticate, requireAdmin };

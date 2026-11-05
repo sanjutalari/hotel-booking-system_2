@@ -49,7 +49,8 @@ hotel-booking-system/
 ├── public/             # customer HTML/CSS/JS
 ├── public-admin/       # admin HTML/CSS/JS
 ├── routes/             # auth, hotel, booking, and admin API routes
-├── admin.js            # local/demo admin Express app
+├── admin.js            # local admin listener; deployed admin is served at /admin/
+├── routes/admin-auth.js # environment-configured admin login and JWT issuance
 ├── server.js           # customer app and startup
 ├── .env.example        # local configuration template
 ├── TEAM-DIVISION.md    # three-member speaking/work split
@@ -61,9 +62,10 @@ hotel-booking-system/
 1. Install Node.js and PostgreSQL; create a database named `hotel_booking`.
 2. Copy `.env.example` to `.env`; set `DATABASE_URL` and a long random `JWT_SECRET`.
 3. Run `npm install`, then `npm start`.
-4. Open `http://localhost:3000` (guest site) and `http://localhost:3001` (local admin console).
+4. Open `http://localhost:3000` (guest site) and `http://localhost:3001` (local admin console). On Render, use `/admin/` on the public service URL.
+5. Configure `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH` in the service environment. Store only a bcrypt hash for the password; never commit the password or hash to this public repository.
 
-The server applies `db/schema.sql` at startup when `DATABASE_URL` is set. If it is missing, browsing works locally, but register/login return a configuration message. Never commit `.env` or production secrets.
+The server applies `db/schema.sql` at startup when `DATABASE_URL` is set. If it is missing, browsing works locally, but register/login return a configuration message. Admin login requires `ADMIN_EMAIL`, a bcrypt `ADMIN_PASSWORD_HASH`, and `JWT_SECRET`. Never commit `.env`, passwords, hashes, or production secrets.
 
 ## API overview
 
@@ -78,7 +80,8 @@ The server applies `db/schema.sql` at startup when `DATABASE_URL` is set. If it 
 | GET | `/api/bookings/me` | JWT | Read own booking history |
 | PUT | `/api/bookings/:id/cancel` | JWT owner | Cancel own booking |
 | POST | `/api/bookings/:id/feedback` | JWT owner | Rate own stay |
-| `/api/admin/*` | Various | Local demo | Admin hotel/room/inspection actions |
+| `/api/admin/auth/login` | POST | Public | Verify configured admin and issue a 2-hour admin JWT |
+| `/api/admin/*` | Various | Admin JWT | Hotel, room, booking and inspection controls |
 
 Protected requests use `Authorization: Bearer <token>`. The server reads guest identity from the verified JWT, not a client-supplied user ID.
 

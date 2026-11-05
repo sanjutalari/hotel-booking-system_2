@@ -1,9 +1,9 @@
 /**
- * Admin console logic — talks to the /api/admin routes on port 3001.
- * No authentication (as required): this is a demo console on its own port.
+ * StayBook admin console. All management requests require an administrator JWT.
  */
 
 const API = "/api/admin";
+const ADMIN_TOKEN_KEY = "staybook.adminToken";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 const inr = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
@@ -22,12 +22,63 @@ function toast(message, type = "success") {
   }, 3400);
 }
 
+function setAdminSignedIn(signedIn) {
+  $("#adminLogin").classList.toggle("hidden", signedIn);
+  $("#adminDashboard").classList.toggle("hidden", !signedIn);
+}
+
 async function api(path, options = {}) {
-  const res = await fetch(`${API}${path}`, options);
+  const headers = new Headers(options.headers || {});
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  if (token) headers.set("Authorization", "Bearer " + token);
+  const res = await fetch(API + path, { ...options, headers });
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== "/auth/login") {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    setAdminSignedIn(false);
+  }
   if (!res.ok) throw new Error(data.error || "Request failed");
   return data;
 }
+
+$("#adminLoginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("#adminLoginSubmit");
+  const error = $("#adminLoginError");
+  error.classList.add("hidden");
+  button.disabled = true;
+  button.textContent = "Checking credentials...";
+  try {
+    const result = await api("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: $("#adminEmail").value.trim(),
+        password: $("#adminPassword").value
+      })
+    });
+    localStorage.setItem(ADMIN_TOKEN_KEY, result.token);
+    $("#adminLoginForm").reset();
+    setAdminSignedIn(true);
+    toast("Signed in to StayBook admin.");
+    await loadHotels();
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.remove("hidden");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Sign in to admin";
+  }
+});
+
+$("#adminLogout").addEventListener("click", () => {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  setAdminSignedIn(false);
+  $("#adminLoginForm").reset();
+  $("#adminEmail").focus();
+});
+
+$("#customerSiteLink").href = window.location.port === "3001" ? "http://localhost:3000/" : "/";
 
 // ---------- tabs ----------
 $$(".tab-btn").forEach((btn) => {
@@ -330,4 +381,19 @@ async function loadBookings() {
 }
 
 // ---------- init ----------
-loadHotels();
+async function initializeAdmin() {
+  if (!localStorage.getItem(ADMIN_TOKEN_KEY)) {
+    setAdminSignedIn(false);
+    return;
+  }
+  setAdminSignedIn(true);
+  try {
+    await api("/auth/me");
+    await loadHotels();
+  } catch {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    setAdminSignedIn(false);
+  }
+}
+
+initializeAdmin();

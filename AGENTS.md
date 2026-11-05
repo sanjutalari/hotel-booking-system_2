@@ -26,7 +26,8 @@ No nodemon or frontend bundler. PostgreSQL is used for guest accounts only; hote
 - Query params go through `req.query`; URL params through `req.params` (e.g. `/:id/cancel`).
 - Frontend is one-page multi-view: HTML `<section class="view">` toggled via `.active` class; all `fetch` calls go through the `api(path, options)` wrapper (`public/app.js`, `public-admin/admin.js`).
 - `localStorage` keys include `staybook.token`, `staybook.account`, `staybook.user`, and `staybook.search`. Customer booking routes require a Bearer JWT; `middleware/auth.js` verifies it and booking ownership is checked server-side.
-- Admin console intentionally has **no auth** (project requirement) — do not "fix" this.
+- Admin console login uses ADMIN_EMAIL and ADMIN_PASSWORD_HASH; never hardcode admin credentials.
+- All /api/admin/* controls require a short-lived admin-role JWT. Keep this protection on both the Render /admin/ route and the local port 3001 server.
 
 ## Reference docs
 - `Hotel Booking System — Mini Project Guide.md` — the PRD/spec to follow.

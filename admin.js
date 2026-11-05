@@ -7,6 +7,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+const adminAuthRoutes = require("./routes/admin-auth");
 const adminRoutes = require("./routes/admin");
 const { getLanIP } = require("./utils/network");
 
@@ -25,7 +26,8 @@ function startAdminServer() {
     res.sendFile(path.join(__dirname, "public-admin", "admin.html"));
   });
 
-  // Admin API (separate namespace from the customer /api)
+  // Admin login and controls share the same protected API as the deployed app.
+  app.use("/api/admin/auth", adminAuthRoutes);
   app.use("/api/admin", adminRoutes);
 
   const server = app.listen(PORT_ADMIN, () => {
