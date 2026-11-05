@@ -205,7 +205,7 @@ function renderHotelList(hotels) {
 
   hotels.forEach((hotel) => {
     const card = document.createElement("article");
-    card.className = "card hotel-card is-clickable";
+    card.className = "card hotel-card";
     card.innerHTML = `
       <div class="card-media">
         <img src="${hotel.image}" alt="${hotel.name}" loading="lazy">
@@ -220,15 +220,18 @@ function renderHotelList(hotels) {
         </div>
         <div class="card-foot">
           <span class="price">${inr(hotel.price)} <small>/ night</small></span>
-          <button class="btn btn-primary" aria-label="View rooms at ${hotel.name}">View rooms</button>
+          <button class="btn btn-primary hotel-card-action" aria-label="View rooms at ${hotel.name}">View rooms</button>
         </div>
       </div>`;
-    card.addEventListener("click", () => openHotel(hotel.id));
+    card.querySelector(".hotel-card-action").addEventListener("click", () => openHotel(hotel.id));
     container.appendChild(card);
   });
 }
 
-$("#btnFilter").addEventListener("click", loadHotels);
+$("#hotelFilters").addEventListener("submit", (event) => {
+  event.preventDefault();
+  loadHotels();
+});
 $("#sortBy").addEventListener("change", loadHotels);
 $("#btnReset").addEventListener("click", () => {
   ["filterLocation", "filterMinPrice", "filterMaxPrice", "filterRating"].forEach((id) => ($(`#${id}`).value = ""));

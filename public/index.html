@@ -79,30 +79,45 @@
 
     <div class="container">
       <div class="results-toolbar">
-        <div class="filters" aria-label="Filter hotels">
-          <input type="text" id="filterLocation" placeholder="Location" autocomplete="off">
-          <input type="number" id="filterMinPrice" placeholder="Min ₹" min="0">
-          <input type="number" id="filterMaxPrice" placeholder="Max ₹" min="0">
-          <select id="filterRating" aria-label="Minimum rating">
-            <option value="">Any rating</option>
-            <option value="4">4.0 ★ &amp; up</option>
-            <option value="4.5">4.5 ★ &amp; up</option>
-          </select>
-          <button class="btn btn-primary" id="btnFilter">Apply</button>
-          <button class="btn btn-ghost" id="btnReset">Reset</button>
-        </div>
-        <div class="results-meta">
-          <span id="resultCount">0</span> <span id="resultLabel">stays</span>
-          <label class="sort-label" aria-label="Sort hotels">
-            <span>Sort</span>
+        <div class="results-summary">
+          <div class="results-summary-copy">
+            <h2>Stays near the coast</h2>
+            <p><strong id="resultCount">0</strong> <span id="resultLabel">stays</span> to explore</p>
+          </div>
+          <label class="sort-label" aria-label="Sort stays">
+            <span>Sort by</span>
             <select id="sortBy">
               <option value="recommended">Recommended</option>
               <option value="price-asc">Price · low to high</option>
               <option value="price-desc">Price · high to low</option>
-              <option value="rating-desc">Rating</option>
+              <option value="rating-desc">Guest rating</option>
             </select>
           </label>
         </div>
+        <form class="filters" id="hotelFilters" aria-label="Filter stays">
+          <label class="filter-field" for="filterLocation">
+            <span>Destination</span>
+            <input type="text" id="filterLocation" placeholder="Any town" autocomplete="off">
+          </label>
+          <label class="filter-field" for="filterMinPrice">
+            <span>Min price / night</span>
+            <input type="number" id="filterMinPrice" placeholder="₹0" min="0">
+          </label>
+          <label class="filter-field" for="filterMaxPrice">
+            <span>Max price / night</span>
+            <input type="number" id="filterMaxPrice" placeholder="No limit" min="0">
+          </label>
+          <label class="filter-field" for="filterRating">
+            <span>Guest rating</span>
+            <select id="filterRating" aria-label="Minimum rating">
+              <option value="">Any rating</option>
+              <option value="4">4.0 and up</option>
+              <option value="4.5">4.5 and up</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" id="btnFilter" type="submit">Apply filters</button>
+          <button class="btn btn-ghost" id="btnReset" type="button">Clear</button>
+        </form>
       </div>
 
       <div id="hotelList" class="card-grid hotel-grid" aria-live="polite"></div>
