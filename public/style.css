@@ -1052,3 +1052,30 @@ img { display: block; max-width: 100%; }
   .filters > .btn { width: 100%; }
   .hotel-card .card-media { height: 180px; }
 }
+
+
+@media (max-width: 820px) {
+  .search-band {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .search-band .field {
+    flex: initial;
+    min-width: 0;
+    min-height: 58px;
+  }
+  .search-band .field:first-of-type,
+  .search-band .search-btn {
+    grid-column: 1 / -1;
+  }
+  .search-band .search-btn {
+    width: auto;
+    margin: 4px;
+  }
+}
+@media (max-width: 560px) {
+  .search-band { grid-template-columns: 1fr; }
+  .search-band .field:first-of-type { grid-column: auto; }
+  .search-band .field { min-height: 52px; }
+}
