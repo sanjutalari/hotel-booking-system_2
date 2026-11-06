@@ -6,7 +6,7 @@
 <title>StayBook · Admin Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -14,18 +14,18 @@
 <section id="adminLogin" class="admin-login-shell">
   <div class="admin-login-card">
     <span class="admin-login-mark" aria-hidden="true">S.</span>
-    <p class="admin-login-kicker">StayBook administration</p>
+    <p class="admin-login-kicker">StayBook Administration</p>
     <h1>Make every stay count.</h1>
-    <p class="admin-login-copy">Sign in to manage properties, inspect standards and review guest bookings.</p>
+    <p class="admin-login-copy">Sign in to manage properties, inspect quality standards, and review guest reservations.</p>
     <form id="adminLoginForm" class="admin-login-form">
       <label for="adminEmail">Email address</label>
       <input id="adminEmail" type="email" autocomplete="username" required placeholder="Administrator email">
       <label for="adminPassword">Password</label>
       <input id="adminPassword" type="password" autocomplete="current-password" required>
       <p id="adminLoginError" class="admin-login-error hidden" role="alert"></p>
-      <button id="adminLoginSubmit" class="btn btn-primary btn-block" type="submit">Sign in to admin</button>
+      <button id="adminLoginSubmit" class="btn btn-primary btn-block" type="submit">Sign in to console</button>
     </form>
-    <a class="admin-login-back" href="/">Return to guest sign-in</a>
+    <a class="admin-login-back" href="/">&larr; Return to guest site</a>
   </div>
 </section>
 
@@ -34,10 +34,10 @@
   <div class="container header-inner">
     <div class="brand">
       <span class="brand-text">StayBook<span class="brand-dot">.</span></span>
-      <span class="admin-tag">Admin console</span>
+      <span class="admin-tag">Admin Console</span>
     </div>
     <div class="admin-header-actions">
-      <a class="site-link" id="customerSiteLink" href="/">Open customer site</a>
+      <a class="site-link" id="customerSiteLink" href="/">Open customer site &rarr;</a>
       <button class="site-link admin-logout" id="adminLogout" type="button">Sign out</button>
     </div>
   </div>
@@ -46,29 +46,29 @@
 <main class="container">
 
   <nav class="tabs" aria-label="Admin sections">
-    <button class="tab-btn active" data-tab="hotels">Hotels &amp; inspections</button>
-    <button class="tab-btn" data-tab="bookings">Bookings &amp; feedback</button>
+    <button class="tab-btn active" data-tab="hotels">Hotels &amp; Inspections</button>
+    <button class="tab-btn" data-tab="bookings">Bookings &amp; Feedback</button>
   </nav>
 
   <!-- ============ HOTELS TAB ============ -->
   <section id="tab-hotels" class="tab-view active">
     <div class="section-bar">
       <div>
-        <h2>Hotels &amp; eligibility</h2>
-        <p class="muted">Every hotel must pass hygiene, customer service and feedback norms to be listed as eligible.</p>
+        <h2>Hotels &amp; Quality Norms</h2>
+        <p class="muted">Every hotel must pass hygiene, customer service, and feedback standards to earn the verified badge.</p>
       </div>
       <button class="btn btn-primary" id="btnToggleAdd">+ Add hotel</button>
     </div>
 
     <form id="addHotelForm" class="panel hidden">
-      <h3>Add a new hotel</h3>
+      <h3>Add a new property</h3>
       <div class="form-grid">
         <label>Name<input type="text" id="hName" required placeholder="e.g. Harbour Lights"></label>
         <label>Location<input type="text" id="hLocation" required placeholder="e.g. Visakhapatnam"></label>
-        <label>Price / night<input type="number" id="hPrice" required min="0"></label>
+        <label>Starting Price / night<input type="number" id="hPrice" required min="0"></label>
         <label>Rating (1–5)<input type="number" id="hRating" required min="1" max="5" step="0.1"></label>
         <label class="wide">Image URL<input type="url" id="hImage" required placeholder="https://…"></label>
-        <label class="wide">Amenities (comma separated)<input type="text" id="hAmenities" placeholder="Free WiFi, Pool, Breakfast"></label>
+        <label class="wide">Amenities (comma separated)<input type="text" id="hAmenities" placeholder="Free WiFi, Pool, Breakfast, Spa"></label>
       </div>
       <div class="form-actions">
         <button class="btn btn-ghost" type="button" id="btnCancelAdd">Cancel</button>
@@ -78,31 +78,31 @@
 
     <div id="adminHotels" class="admin-grid" aria-live="polite"></div>
     <div id="hotelsEmpty" class="empty hidden">
-      <h3>No hotels yet</h3>
-      <p>Use “Add hotel” to create your first property.</p>
+      <h3>No properties registered</h3>
+      <p>Click “+ Add hotel” above to create your first property listing.</p>
     </div>
 
     <!-- Inspection panel -->
     <div id="inspectPanel" class="panel hidden">
       <div class="panel-head">
-        <h3 id="inspectTitle">Inspection</h3>
+        <h3 id="inspectTitle">Inspection Assessment</h3>
         <button class="btn btn-ghost btn-sm" id="btnCloseInspect">Close</button>
       </div>
       <form id="inspectForm" class="form-grid">
-        <label>Hygiene &amp; cleanliness
+        <label>Hygiene &amp; Cleanliness
           <select id="iHygiene"><option value="pass">Pass</option><option value="fail">Fail</option></select>
         </label>
-        <label>Customer service support
+        <label>Customer Service Support
           <select id="iService"><option value="pass">Pass</option><option value="fail">Fail</option></select>
         </label>
-        <label>Customer feedback score (1–5)
+        <label>Customer Feedback Score (1–5)
           <select id="iFeedback">
             <option value="1">1</option><option value="2">2</option><option value="3">3</option>
             <option value="4" selected>4</option><option value="5">5</option>
           </select>
         </label>
-        <label class="wide">Inspection note
-          <input id="iNote" placeholder="e.g. linen checked, service team trained">
+        <label class="wide">Inspection Notes
+          <input id="iNote" placeholder="e.g. linen inspected, service team trained, hygiene audit verified">
         </label>
       </form>
       <div class="form-actions">
@@ -114,15 +114,15 @@
     <!-- Rooms panel -->
     <div id="roomsPanel" class="panel hidden">
       <div class="panel-head">
-        <h3 id="roomsTitle">Rooms</h3>
+        <h3 id="roomsTitle">Rooms &amp; Suites</h3>
         <button class="btn btn-ghost btn-sm" id="btnCloseRooms">Close</button>
       </div>
       <div id="roomsList" class="admin-rooms"></div>
       <form id="addRoomForm" class="form-grid margin-top">
-        <label>Room number<input type="text" id="rNumber" required></label>
-        <label>Room type<input type="text" id="rType" required placeholder="Deluxe"></label>
+        <label>Room Number<input type="text" id="rNumber" required placeholder="e.g. 104"></label>
+        <label>Room Type<input type="text" id="rType" required placeholder="Deluxe"></label>
         <label>Price / night<input type="number" id="rPrice" required min="0"></label>
-        <label class="check"><input type="checkbox" id="rBalcony"> Has balcony</label>
+        <label class="check"><input type="checkbox" id="rBalcony"> Private balcony</label>
       </form>
       <div class="form-actions">
         <button class="btn btn-primary" type="button" id="btnAddRoom">Add room</button>
@@ -134,8 +134,8 @@
   <section id="tab-bookings" class="tab-view">
     <div class="section-bar">
       <div>
-        <h2>Bookings &amp; guest feedback</h2>
-        <p class="muted">Live view of every booking and the ratings guests gave their stays.</p>
+        <h2>Bookings &amp; Guest Feedback</h2>
+        <p class="muted">Live view of every reservation and guest feedback ratings.</p>
       </div>
     </div>
     <div class="table-wrap">
@@ -150,8 +150,8 @@
       </table>
     </div>
     <div id="bookingsEmpty" class="empty hidden">
-      <h3>No bookings yet</h3>
-      <p>Bookings made on the customer site (port 3000) appear here instantly.</p>
+      <h3>No bookings registered yet</h3>
+      <p>Bookings made on the customer site appear here in real time.</p>
     </div>
   </section>
 

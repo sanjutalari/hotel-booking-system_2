@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="StayBook — a mini hotel booking system. Search coastal Andhra hotels, pick a room and book instantly.">
-<title>StayBook · Hotel Booking System</title>
+<meta name="description" content="StayBook — Curated coastal Andhra hotels & luxury stays. Compare rooms, view amenities, and book instantly.">
+<title>StayBook · Curated Coastal Hotels & Stays</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,20 +15,29 @@
 <header class="site-header">
   <div class="container header-inner">
     <button class="brand" data-nav="search" aria-label="StayBook home">
-      <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
-        <circle cx="16" cy="11" r="5.5" fill="none" stroke="currentColor" stroke-width="2.4"/>
-        <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none">
-          <path d="M16 3V2.2M7.2 6.8l-.8-.8M24.8 6.8l.8-.8"/>
-          <path d="M5 22h22M7 22v7M25 22v7M10.5 29v-4.5h11V29"/>
-        </g>
-      </svg>
+      <span class="brand-icon-wrap" aria-hidden="true">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+          <circle cx="16" cy="11" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+          <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none">
+            <path d="M16 3.2V2M7.5 7l-.8-.8M24.5 7l.8-.8"/>
+            <path d="M5 22h22M7.5 22v7M24.5 22v7M11 29v-4.5h10V29"/>
+          </g>
+        </svg>
+      </span>
       <span class="brand-text">StayBook<span class="brand-dot">.</span></span>
+      <span class="brand-badge">Luxury &amp; Boutique</span>
     </button>
 
     <nav class="main-nav" aria-label="Primary">
-      <button class="nav-btn active" data-nav="search">Explore hotels</button>
-      <button class="nav-btn" data-nav="history">My bookings</button>
-      <button class="nav-btn" id="authButton" data-nav="auth">Sign in</button>
+      <button class="nav-btn active" data-nav="search">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>Explore stays</span>
+      </button>
+      <button class="nav-btn" data-nav="history">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>My bookings</span>
+      </button>
+      <button class="nav-btn nav-btn-cta" id="authButton" data-nav="auth">Sign in</button>
     </nav>
   </div>
 </header>
@@ -38,97 +47,146 @@
   <!-- SEARCH / HOTEL LIST VIEW -->
   <section id="view-search" class="view active">
     <section class="hero">
-      <div class="container">
+      <div class="container hero-container">
         <div class="hero-copy">
-          <h1 class="hero-title">Coastal stays, <em>booked in seconds.</em></h1>
-          <p class="hero-sub">Search hotels near the coast, compare rooms and confirm your stay — without ever leaving this page.</p>
+          <div class="hero-pill">
+            <span class="hero-pill-sparkle">✦</span>
+            <span>Curated Coastal Sanctuaries · Andhra Coast</span>
+          </div>
+          <h1 class="hero-title">Coastal stays, <em>crafted for comfort.</em></h1>
+          <p class="hero-sub">Discover handpicked seaside retreats, compare signature suites with verified quality checks, and confirm your stay in seconds.</p>
         </div>
 
         <form class="search-band" id="heroSearch" role="search" aria-label="Search hotels">
-          <label class="field">
-            <svg class="field-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            <span class="field-label">Where to?</span>
-            <input type="text" id="sLocation" placeholder="Town or city" autocomplete="off">
+          <label class="field field-dest">
+            <span class="field-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            </span>
+            <div class="field-text">
+              <span class="field-label">Destination</span>
+              <input type="text" id="sLocation" placeholder="Where are you travelling?" autocomplete="off">
+            </div>
           </label>
-          <label class="field">
-            <span class="field-label">Check-in</span>
-            <input type="date" id="sCheckIn">
+          <div class="search-divider" aria-hidden="true"></div>
+          <label class="field field-date">
+            <span class="field-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <div class="field-text">
+              <span class="field-label">Check-in</span>
+              <input type="date" id="sCheckIn">
+            </div>
           </label>
-          <label class="field">
-            <span class="field-label">Check-out</span>
-            <input type="date" id="sCheckOut">
+          <div class="search-divider" aria-hidden="true"></div>
+          <label class="field field-date">
+            <span class="field-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <div class="field-text">
+              <span class="field-label">Check-out</span>
+              <input type="date" id="sCheckOut">
+            </div>
           </label>
-          <label class="field">
-            <span class="field-label">Guests</span>
-            <select id="sGuests">
-              <option value="1">1 guest</option>
-              <option value="2" selected>2 guests</option>
-              <option value="3">3 guests</option>
-              <option value="4">4 guests</option>
-              <option value="5">5 guests</option>
-              <option value="6">6 guests</option>
-            </select>
+          <div class="search-divider" aria-hidden="true"></div>
+          <label class="field field-guests">
+            <span class="field-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <div class="field-text">
+              <span class="field-label">Guests</span>
+              <select id="sGuests">
+                <option value="1">1 guest</option>
+                <option value="2" selected>2 guests</option>
+                <option value="3">3 guests</option>
+                <option value="4">4 guests</option>
+                <option value="5">5 guests</option>
+                <option value="6">6 guests</option>
+              </select>
+            </div>
           </label>
-          <button type="submit" class="btn btn-coral search-btn">Search stays</button>
+          <button type="submit" class="btn btn-coral search-btn">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>Search stays</span>
+          </button>
         </form>
+
+        <div class="hero-quick-tags" aria-label="Popular destinations">
+          <span class="quick-tags-label">Trending destinations:</span>
+          <div class="quick-tags-list">
+            <button type="button" class="quick-tag-btn" data-destination="Visakhapatnam">Visakhapatnam</button>
+            <button type="button" class="quick-tag-btn" data-destination="Vijayawada">Vijayawada</button>
+            <button type="button" class="quick-tag-btn" data-destination="Guntur">Guntur</button>
+            <button type="button" class="quick-tag-btn" data-destination="Mangalagiri">Mangalagiri</button>
+          </div>
+        </div>
       </div>
       <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-glow-secondary" aria-hidden="true"></div>
     </section>
 
-    <div class="container">
+    <div class="container main-content-wrap">
       <div class="results-toolbar">
         <div class="results-summary">
           <div class="results-summary-copy">
-            <h2>Stays near the coast</h2>
-            <p><strong id="resultCount">0</strong> <span id="resultLabel">stays</span> to explore</p>
+            <div class="results-badge">Featured Collection</div>
+            <h2>Coastal Andhra Escapes</h2>
+            <p>Showing <strong id="resultCount">0</strong> <span id="resultLabel">properties</span> available for your dates</p>
           </div>
           <label class="sort-label" aria-label="Sort stays">
             <span>Sort by</span>
             <select id="sortBy">
-              <option value="recommended">Recommended</option>
-              <option value="price-asc">Price · low to high</option>
-              <option value="price-desc">Price · high to low</option>
-              <option value="rating-desc">Guest rating</option>
+              <option value="recommended">Curated / Recommended</option>
+              <option value="price-asc">Price · Low to High</option>
+              <option value="price-desc">Price · High to Low</option>
+              <option value="rating-desc">Guest Rating · 5★ down</option>
             </select>
           </label>
         </div>
         <form class="filters" id="hotelFilters" aria-label="Filter stays">
           <label class="filter-field" for="filterLocation">
             <span>Destination</span>
-            <input type="text" id="filterLocation" placeholder="Any town" autocomplete="off">
+            <input type="text" id="filterLocation" placeholder="Any town or city" autocomplete="off">
           </label>
           <label class="filter-field" for="filterMinPrice">
-            <span>Min price / night</span>
+            <span>Min Price / night</span>
             <input type="number" id="filterMinPrice" placeholder="₹0" min="0">
           </label>
           <label class="filter-field" for="filterMaxPrice">
-            <span>Max price / night</span>
+            <span>Max Price / night</span>
             <input type="number" id="filterMaxPrice" placeholder="No limit" min="0">
           </label>
           <label class="filter-field" for="filterRating">
-            <span>Guest rating</span>
+            <span>Guest Rating</span>
             <select id="filterRating" aria-label="Minimum rating">
               <option value="">Any rating</option>
-              <option value="4">4.0 and up</option>
-              <option value="4.5">4.5 and up</option>
+              <option value="4">4.0★ and above</option>
+              <option value="4.5">4.5★ and above</option>
             </select>
           </label>
           <button class="btn btn-primary" id="btnFilter" type="submit">Apply filters</button>
-          <button class="btn btn-ghost" id="btnReset" type="button">Clear</button>
+          <button class="btn btn-ghost" id="btnReset" type="button">Reset</button>
         </form>
       </div>
 
       <div id="hotelList" class="card-grid hotel-grid" aria-live="polite"></div>
 
       <div id="searchEmpty" class="empty-state hidden">
-        <svg class="empty-icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6"/>
-        </svg>
-        <h3>No stays match your filters</h3>
-        <p>Try widening the price range or clearing the location.</p>
-        <button class="btn btn-coral" id="btnClearAll">Clear filters</button>
+        <div class="empty-icon-wrap">
+          <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8 11h6"/>
+          </svg>
+        </div>
+        <h3>No retreats match your selection</h3>
+        <p>Try widening your price range, choosing another rating threshold, or clearing the destination search.</p>
+        <button class="btn btn-coral" id="btnClearAll">Clear all filters</button>
       </div>
     </div>
   </section>
@@ -136,19 +194,27 @@
   <!-- HOTEL DETAIL + ROOMS VIEW -->
   <section id="view-hotel" class="view">
     <div class="container">
-      <button class="back-btn" data-back="search">← Back to search</button>
+      <button class="back-btn" data-back="search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Back to search</span>
+      </button>
       <div id="hotelDetail"></div>
       <div class="section-head">
-        <h2 id="roomSectionTitle">Available rooms</h2>
-        <p id="roomSubtext">Pick a room type and book it in under a minute.</p>
+        <div>
+          <span class="section-kicker">Accommodations</span>
+          <h2 id="roomSectionTitle">Available Rooms &amp; Suites</h2>
+          <p id="roomSubtext">Select your preferred space and complete your reservation instantly.</p>
+        </div>
       </div>
       <div id="roomList" class="card-grid room-grid" aria-live="polite"></div>
       <div id="roomEmpty" class="empty-state hidden">
-        <svg class="empty-icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="4" y="3" width="16" height="20" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>
-        </svg>
-        <h3>All booked up</h3>
-        <p>No rooms are free right now. Check back later or pick another hotel.</p>
+        <div class="empty-icon-wrap">
+          <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="3" width="16" height="20" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>
+          </svg>
+        </div>
+        <h3>All rooms currently booked</h3>
+        <p>No accommodations are available at this property right now. Please explore our other coastal properties or check back later.</p>
       </div>
     </div>
   </section>
@@ -157,25 +223,39 @@
   <section id="view-auth" class="view">
     <div class="container narrow auth-layout">
       <div class="auth-copy">
-        <p class="eyebrow">Your StayBook account</p>
-        <h1>Keep every stay<br>in one place.</h1>
-        <p>Sign in to confirm a room and see your booking history.</p>
+        <div class="auth-pill">Guest Concierge Access</div>
+        <h1>Elevate every stay<br>with your account.</h1>
+        <p>Sign in to confirm signature rooms, manage upcoming travel itineraries, and access personal guest vouchers.</p>
+        <div class="auth-features">
+          <div class="auth-feature-item">
+            <span class="auth-feature-check">✓</span>
+            <span>Instant booking confirmation &amp; digital stay vouchers</span>
+          </div>
+          <div class="auth-feature-item">
+            <span class="auth-feature-check">✓</span>
+            <span>Real-time room availability &amp; quality-inspected suites</span>
+          </div>
+          <div class="auth-feature-item">
+            <span class="auth-feature-check">✓</span>
+            <span>Seamless cancellation &amp; guest review ratings</span>
+          </div>
+        </div>
       </div>
       <form id="authForm" class="auth-panel" novalidate>
         <h2 id="authTitle">Welcome back</h2>
-        <p id="authIntro" class="panel-sub">Use your account to continue.</p>
-        <label id="authNameLabel" class="hidden" for="authName">Your name</label>
-        <input id="authName" class="hidden" type="text" autocomplete="name" maxlength="80" placeholder="Name">
-        <label for="authEmail">Email address</label>
-        <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+        <p id="authIntro" class="panel-sub">Access your personal booking portal.</p>
+        <label id="authNameLabel" class="hidden" for="authName">Full Name</label>
+        <input id="authName" class="hidden" type="text" autocomplete="name" maxlength="80" placeholder="e.g. Anand Varma">
+        <label for="authEmail">Email Address</label>
+        <input id="authEmail" type="email" autocomplete="email" required placeholder="you@domain.com">
         <label for="authPassword">Password</label>
         <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters">
         <p id="authError" class="field-hint error hidden" role="alert"></p>
         <button id="authSubmit" class="btn btn-coral btn-block" type="submit">Sign in</button>
         <p class="auth-switch"><span id="authSwitchText">New to StayBook?</span>
           <button id="authModeToggle" type="button">Create an account</button></p>
-        <a id="adminLoginLink" class="auth-admin-link" href="/admin/">Administrator sign in</a>
-        <button class="back-btn" type="button" data-nav="search">Continue exploring</button>
+        <a id="adminLoginLink" class="auth-admin-link" href="/admin/">Administrator Portal &rarr;</a>
+        <button class="back-btn auth-back" type="button" data-nav="search">Continue exploring</button>
       </form>
     </div>
   </section>
@@ -183,13 +263,18 @@
   <!-- BOOKING FORM VIEW -->
   <section id="view-booking" class="view">
     <div class="container narrow">
-      <button class="back-btn" data-back="hotel">← Back to rooms</button>
+      <button class="back-btn" data-back="hotel">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Back to suite selection</span>
+      </button>
 
       <div class="booking-layout">
         <aside class="order-panel">
-          <p class="eyebrow">Your stay</p>
-          <h2 id="bookingHotelName">—</h2>
-          <p class="order-location" id="bookingHotelPlace">—</p>
+          <div class="order-header">
+            <p class="eyebrow">Reservation Summary</p>
+            <h2 id="bookingHotelName">—</h2>
+            <p class="order-location" id="bookingHotelPlace">—</p>
+          </div>
 
           <div class="room-gallery" id="roomGallery">
             <div class="gallery-main">
@@ -201,25 +286,30 @@
 
           <div class="order-room">
             <span class="room-type-badge" id="bookingRoomType">—</span>
-            <span class="order-room-info">Room <b id="bookingRoomNo">—</b> · ₹<span id="bookingRate">0</span>/night</span>
+            <span class="order-room-info">Room <b id="bookingRoomNo">—</b> · ₹<span id="bookingRate">0</span> / night</span>
           </div>
 
           <div class="order-lines">
-            <div class="order-line"><span>Check-in</span><b id="orderCheckIn">—</b></div>
-            <div class="order-line"><span>Check-out</span><b id="orderCheckOut">—</b></div>
-            <div class="order-line"><span>Nights</span><b id="orderNights">—</b></div>
+            <div class="order-line"><span>Check-in date</span><b id="orderCheckIn">—</b></div>
+            <div class="order-line"><span>Check-out date</span><b id="orderCheckOut">—</b></div>
+            <div class="order-line"><span>Total duration</span><b id="orderNights">—</b></div>
             <div class="order-line"><span>Guests</span><b id="orderGuests">—</b></div>
           </div>
 
           <div class="order-total">
-            <span>Total</span>
+            <div class="order-total-label">
+              <span>Total Investment</span>
+              <small>Taxes &amp; resort fees included</small>
+            </div>
             <b id="orderTotal">—</b>
           </div>
         </aside>
 
         <div class="form-panel">
-          <h2>Who's staying?</h2>
-          <p class="panel-sub">We hold the room the moment you confirm.</p>
+          <div class="form-panel-header">
+            <h2>Guest Details &amp; Dates</h2>
+            <p class="panel-sub">We hold the room in real time the instant you confirm.</p>
+          </div>
 
           <form id="bookingForm" novalidate>
             <div class="form-row">
@@ -232,19 +322,22 @@
                 <input type="date" id="checkOut" required>
               </div>
             </div>
-            <p class="field-hint" id="dateHint">Pick dates to preview your total.</p>
+            <p class="field-hint" id="dateHint">Select dates to preview duration and pricing.</p>
 
-            <label for="guests">Guests</label>
-            <select id="guests">
-              <option value="1">1 guest</option>
-              <option value="2" selected>2 guests</option>
-              <option value="3">3 guests</option>
-              <option value="4">4 guests</option>
-              <option value="5">5 guests</option>
-              <option value="6">6 guests</option>
-            </select>
+            <div class="form-field">
+              <label for="guests">Number of Guests</label>
+              <select id="guests">
+                <option value="1">1 guest</option>
+                <option value="2" selected>2 guests</option>
+                <option value="3">3 guests</option>
+                <option value="4">4 guests</option>
+                <option value="5">5 guests</option>
+                <option value="6">6 guests</option>
+              </select>
+            </div>
 
-            <button type="submit" class="btn btn-coral btn-block" id="btnConfirm">Confirm booking</button>
+            <button type="submit" class="btn btn-coral btn-block" id="btnConfirm">Confirm reservation</button>
+            <p class="booking-guarantee">🔒 Guaranteed instant reservation · No hidden charges</p>
           </form>
         </div>
       </div>
@@ -255,12 +348,15 @@
   <section id="view-confirm" class="view">
     <div class="container narrow">
       <div class="confirm-hero">
-        <div class="check-badge">✓</div>
-        <h2>Booking confirmed!</h2>
-        <p>Your room is locked in. Show this voucher at check-in.</p>
+        <div class="check-badge-wrap">
+          <div class="check-badge">✓</div>
+        </div>
+        <h2>Reservation Confirmed</h2>
+        <p>Your suite has been secured. Present this luxury guest voucher at reception upon arrival.</p>
         <div class="confirm-actions">
           <button class="btn btn-primary" data-nav="history" id="btnGoHistory">View my bookings</button>
-          <button class="btn btn-ghost" data-nav="search">Back to hotels</button>
+          <button class="btn btn-ghost" data-nav="search">Explore more stays</button>
+          <button class="btn btn-gold btn-print-voucher" type="button" id="btnPrintVoucher">Print / Save voucher</button>
         </div>
       </div>
       <div id="voucherCard"></div>
@@ -270,26 +366,33 @@
   <!-- BOOKING HISTORY VIEW -->
   <section id="view-history" class="view">
     <div class="container">
-      <div class="section-head">
-        <h2>My bookings</h2>
-        <p class="panel-sub">Every stay you've confirmed, in one place.</p>
-      </div>
-
-      <div class="user-bar">
-        <p id="historyAccount">Your account booking history</p>
-        <button class="btn btn-primary" id="btnLoadHistory">Refresh trips</button>
+      <div class="history-hero-bar">
+        <div>
+          <span class="section-kicker">Account Portfolio</span>
+          <h2>My Bookings &amp; Stays</h2>
+          <p class="panel-sub">Review confirmed itineraries, past journeys, and share stay feedback.</p>
+        </div>
+        <div class="user-bar">
+          <p id="historyAccount">Account booking ledger</p>
+          <button class="btn btn-primary" id="btnLoadHistory">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+            <span>Refresh stays</span>
+          </button>
+        </div>
       </div>
 
       <div id="statsStrip" class="stats hidden"></div>
       <div id="historyList" class="history-list" aria-live="polite"></div>
 
       <div id="historyEmpty" class="empty-state hidden">
-        <svg class="empty-icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M5 3h14v4H5zM9 11h6M9 15h6"/>
-        </svg>
-        <h3>No stays yet</h3>
-        <p>Search for a coast-side hotel and make your first booking.</p>
-        <button class="btn btn-coral" data-nav="search">Explore hotels</button>
+        <div class="empty-icon-wrap">
+          <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 7h18M5 7v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><path d="M5 3h14v4H5zM9 11h6M9 15h6"/>
+          </svg>
+        </div>
+        <h3>No journeys booked yet</h3>
+        <p>Discover our boutique collection along the Andhra coast and make your first booking today.</p>
+        <button class="btn btn-coral" data-nav="search">Explore coastal hotels</button>
       </div>
     </div>
   </section>
@@ -298,19 +401,28 @@
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p class="footer-note">Hotel Booking System · Mini Project — Node.js + Express backend, vanilla HTML/CSS/JS frontend. Hotel, Room &amp; Booking connected by reference IDs.</p>
-    <a class="footer-link" href="http://localhost:3001" target="_blank" rel="noopener">Admin console &rarr; port 3001</a>
+    <div class="footer-brand">
+      <span class="brand-text">StayBook<span class="brand-dot">.</span></span>
+      <p class="footer-tagline">Curated coastal hospitality · Luxury stays booked in seconds.</p>
+    </div>
+    <div class="footer-meta">
+      <p class="footer-note">Architected with Node.js &amp; Express RESTful API, PostgreSQL account storage, and vanilla reactive client.</p>
+      <div class="footer-links">
+        <a class="footer-link" href="http://localhost:3001" target="_blank" rel="noopener">Admin Console &rarr; Port 3001</a>
+      </div>
+    </div>
   </div>
 </footer>
 
 <!-- Cancel confirmation modal -->
 <div id="modalRoot" class="modal-root hidden">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-icon-badge">!</div>
     <h3 id="modalTitle">Cancel this booking?</h3>
     <p id="modalText">The room will be freed up for other guests.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="modalKeep">Keep booking</button>
-      <button class="btn btn-danger" id="modalConfirmCancel">Cancel booking</button>
+      <button class="btn btn-danger" id="modalConfirmCancel">Yes, cancel booking</button>
     </div>
   </div>
 </div>

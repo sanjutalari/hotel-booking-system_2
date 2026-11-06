@@ -1,5 +1,5 @@
 /**
- * StayBook · Hotel Booking System — frontend logic
+ * StayBook · Curated Coastal Hotels & Stays — frontend logic
  * Plain vanilla JS: fetch() against the Express REST API,
  * then DOM manipulation (createElement / innerHTML / listeners) to render it.
  */
@@ -135,7 +135,9 @@ $$("[data-nav]").forEach((el) => {
 });
 
 $$(".back-btn").forEach((btn) => {
-  btn.addEventListener("click", () => showView(btn.dataset.back));
+  btn.addEventListener("click", () => {
+    if (btn.dataset.back) showView(btn.dataset.back);
+  });
 });
 
 // ---------- hero search band ----------
@@ -157,6 +159,35 @@ $("#heroSearch").addEventListener("submit", (e) => {
     saveSearch({ checkIn, checkOut, guests });
   }
   showView("search");
+});
+
+// Trending destination quick tags
+$$(".quick-tag-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const dest = btn.dataset.destination;
+    $("#sLocation").value = dest;
+    $("#filterLocation").value = dest;
+    loadHotels();
+    const toolbar = $(".results-toolbar");
+    if (toolbar) toolbar.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+
+// Minimum selectable dates (prevent past dates)
+const todayIso = new Date().toISOString().split("T")[0];
+["sCheckIn", "sCheckOut", "checkIn", "checkOut"].forEach((id) => {
+  const el = $(`#${id}`);
+  if (el) el.min = todayIso;
+});
+$("#sCheckIn").addEventListener("change", () => {
+  if ($("#sCheckIn").value) {
+    $("#sCheckOut").min = $("#sCheckIn").value;
+  }
+});
+$("#checkIn").addEventListener("change", () => {
+  if ($("#checkIn").value) {
+    $("#checkOut").min = $("#checkIn").value;
+  }
 });
 
 // ---------- hotels: search + filter + sort ----------
@@ -196,7 +227,7 @@ function renderHotelList(hotels) {
   container.innerHTML = "";
 
   $("#resultCount").textContent = hotels.length;
-  $("#resultLabel").textContent = hotels.length === 1 ? "stay" : "stays";
+  $("#resultLabel").textContent = hotels.length === 1 ? "retreat" : "retreats";
 
   if (hotels.length === 0) {
     empty.classList.remove("hidden");
@@ -205,25 +236,33 @@ function renderHotelList(hotels) {
 
   hotels.forEach((hotel) => {
     const card = document.createElement("article");
-    card.className = "card hotel-card";
+    card.className = "card hotel-card is-clickable";
     card.innerHTML = `
       <div class="card-media">
         <img src="${hotel.image}" alt="${hotel.name}" loading="lazy">
-        <span class="rating-chip"><span class="star">★</span> ${hotel.rating}</span>
+        <span class="rating-chip"><span class="star">★</span> ${Number(hotel.rating).toFixed(1)}</span>
+        ${hotel.eligible ? `<span class="verified-ribbon"><span class="tick">✓</span> Quality Checked</span>` : ""}
       </div>
       <div class="card-body">
         <h3>${hotel.name}</h3>
-        <p class="card-meta">📍 ${hotel.location}${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}</p>
+        <p class="card-meta">
+          <svg class="meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>${hotel.location}</span>
+          ${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}
+        </p>
         <div class="amenity-chips">
           ${hotel.amenities.slice(0, 3).map((a) => `<span class="chip">${a}</span>`).join("")}
           <span class="chip rooms-chip">${hotel.availableRooms ?? "—"} rooms free</span>
         </div>
         <div class="card-foot">
-          <span class="price">${inr(hotel.price)} <small>/ night</small></span>
-          <button class="btn btn-primary hotel-card-action" aria-label="View rooms at ${hotel.name}">View rooms</button>
+          <div class="price-wrap">
+            <span class="price-prefix">From</span>
+            <span class="price">${inr(hotel.price)} <small>/ night</small></span>
+          </div>
+          <button class="btn btn-primary hotel-card-action" aria-label="View rooms at ${hotel.name}">View suites &rarr;</button>
         </div>
       </div>`;
-    card.querySelector(".hotel-card-action").addEventListener("click", () => openHotel(hotel.id));
+    card.addEventListener("click", () => openHotel(hotel.id));
     container.appendChild(card);
   });
 }
@@ -251,20 +290,26 @@ async function openHotel(hotelId) {
     $("#hotelDetail").innerHTML = `
       <div class="hotel-hero">
         <img src="${hotel.image}" alt="${hotel.name}">
-        <span class="rating-chip"><span class="star">★</span> ${hotel.rating}</span>
+        <span class="rating-chip"><span class="star">★</span> ${Number(hotel.rating).toFixed(1)}</span>
+        ${hotel.eligible ? `<span class="verified-ribbon"><span class="tick">✓</span> Quality Checked</span>` : ""}
       </div>
       <div class="hotel-info">
         <h2>${hotel.name}</h2>
-        <p class="card-meta">📍 ${hotel.location}${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}</p>
-        <p class="hotel-price-line">${inr(hotel.price)} <small>/ night &middot; from</small></p>
+        <p class="card-meta">
+          <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>${hotel.location}</span>
+          ${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}
+        </p>
+        <p class="hotel-price-line">${inr(hotel.price)} <small>/ night &middot; starting rate</small></p>
         <div class="amenities-hotel">
           ${hotel.amenities.map((a) => `<span class="chip">${a}</span>`).join("")}
         </div>
       </div>`;
 
-    $("#roomSectionTitle").textContent = `Rooms at ${hotel.name}`;
+    $("#roomSectionTitle").textContent = `Available Suites at ${hotel.name}`;
     renderRooms(await api(`/hotels/${hotelId}/rooms`));
     showView("hotel");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
     toast(err.message, "error");
   }
@@ -279,8 +324,8 @@ function renderRooms(rooms) {
   const available = rooms.filter((r) => r.status === "available");
   $("#roomSubtext").textContent =
     available.length === 0
-      ? "No rooms are available right now."
-      : `${available.length} of ${rooms.length} rooms available — book one below.`;
+      ? "All suites are currently occupied."
+      : `${available.length} of ${rooms.length} suites available — select your room to reserve.`;
 
   if (rooms.length === 0) {
     empty.classList.remove("hidden");
@@ -294,7 +339,7 @@ function renderRooms(rooms) {
     card.innerHTML = `
       <div class="room-top">
         <span class="room-type-badge">${room.roomType}</span>
-        <span class="status-badge ${free ? "status-available" : "status-booked"}">${room.status}</span>
+        <span class="status-badge ${free ? "status-available" : "status-booked"}">${free ? "Available" : "Booked"}</span>
       </div>
       <div class="room-media">
         <img src="${room.bedImage}" alt="Bedroom">
@@ -302,7 +347,7 @@ function renderRooms(rooms) {
           <img src="${room.bathImage}" alt="Bathroom">
           ${room.hasBalcony && room.balconyImage
             ? `<img src="${room.balconyImage}" alt="Balcony">`
-            : `<div class="rm-no-b">No balcony</div>`}
+            : `<div class="rm-no-b">No Balcony</div>`}
         </div>
       </div>
       <h4>Room ${room.roomNumber}</h4>
@@ -313,8 +358,10 @@ function renderRooms(rooms) {
           .join("")}
       </ul>
       <div class="card-foot">
-        <span class="price">${inr(room.price)} <small>/ night</small></span>
-        ${free ? `<button class="btn btn-coral">Book this room</button>` : `<button class="btn btn-ghost" disabled>Unavailable</button>`}
+        <div class="price-wrap">
+          <span class="price">${inr(room.price)} <small>/ night</small></span>
+        </div>
+        ${free ? `<button class="btn btn-coral">Reserve room</button>` : `<button class="btn btn-ghost" disabled>Reserved</button>`}
       </div>`;
     if (free) card.addEventListener("click", () => openBooking(room));
     container.appendChild(card);
@@ -333,7 +380,7 @@ function setAuthMode(mode) {
   authMode = mode;
   const registering = mode === "register";
   $("#authTitle").textContent = registering ? "Create your account" : "Welcome back";
-  $("#authIntro").textContent = registering ? "One account keeps your trips together." : "Use your account to continue.";
+  $("#authIntro").textContent = registering ? "One account manages your luxury coastal journeys." : "Access your personal booking portal.";
   $("#authNameLabel").classList.toggle("hidden", !registering);
   $("#authName").classList.toggle("hidden", !registering);
   $("#authName").required = registering;
@@ -378,7 +425,7 @@ $("#authForm").addEventListener("submit", async (event) => {
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(result.user));
     localStorage.setItem(USER_KEY, String(result.user.id));
     updateAuthButton();
-    toast(authMode === "register" ? "Account created." : "Welcome back.");
+    toast(authMode === "register" ? "Account created successfully." : "Welcome back.");
     $("#authForm").reset();
     if (pendingRoom) {
       const room = pendingRoom;
@@ -404,7 +451,7 @@ function openBooking(room) {
   if (!localStorage.getItem(TOKEN_KEY)) {
     pendingRoom = room;
     showView("auth");
-    toast("Sign in before confirming a room.", "info");
+    toast("Please sign in before confirming your suite.", "info");
     return;
   }
   currentRoom = room;
@@ -414,7 +461,7 @@ function openBooking(room) {
     : "—";
   $("#bookingRoomType").textContent = room.roomType;
   $("#bookingRoomNo").textContent = room.roomNumber;
-  $("#bookingRate").textContent = room.price;
+  $("#bookingRate").textContent = Number(room.price).toLocaleString("en-IN");
 
   $("#bookingForm").reset();
   $("#guests").value = lastSearch && lastSearch.guests ? String(lastSearch.guests) : "2";
@@ -424,6 +471,7 @@ function openBooking(room) {
   fillGallery(room);
   syncOrderPanel();
   showView("booking");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // room picture gallery: bedroom / bathroom / balcony + ambience
@@ -477,7 +525,7 @@ function syncOrderPanel() {
   hint.classList.remove("error");
 
   if (!checkIn && !checkOut) {
-    hint.textContent = "Pick dates to preview your total.";
+    hint.textContent = "Select dates to preview duration and pricing.";
     $("#orderTotal").textContent = "—";
   } else if (nights > 0) {
     const total = nights * rate;
@@ -514,7 +562,7 @@ $("#bookingForm").addEventListener("submit", async (e) => {
 
   const btn = $("#btnConfirm");
   btn.disabled = true;
-  btn.textContent = "Confirming…";
+  btn.textContent = "Securing suite…";
 
   try {
     const booking = await api("/bookings", {
@@ -531,12 +579,13 @@ $("#bookingForm").addEventListener("submit", async (e) => {
 
     renderVoucher(booking);
     showView("confirm");
-    toast(`Booking confirmed. Your ID: ${booking.id}`);
+    toast(`Reservation confirmed! Reference ID: ${booking.id}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
     toast(err.message, "error");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Confirm booking";
+    btn.textContent = "Confirm reservation";
   }
 });
 
@@ -547,48 +596,61 @@ function renderVoucher(b) {
   $("#voucherCard").innerHTML = `
     <div class="voucher">
       <div class="voucher-top">
-        <span class="voucher-brand">StayBook<span>.</span></span>
+        <div class="voucher-brand-group">
+          <span class="voucher-brand">StayBook<span>.</span></span>
+          <span class="voucher-concierge-tag">Luxury Stay Voucher</span>
+        </div>
         <div class="voucher-code">
-          <div class="vc-label">Booking ID</div>
+          <div class="vc-label">Reservation Reference</div>
           <div class="vc-value">${b.id}</div>
         </div>
       </div>
       <div class="voucher-route">
         <div class="vc-stop">
-          <div class="vc-label">Stay</div>
+          <div class="vc-label">Property &amp; Destination</div>
           <h3>${hotel.name || b.hotelName || "Hotel"}</h3>
-          <p>📍 ${hotel.location || ""}</p>
+          <p>📍 ${hotel.location || "Coastal Andhra"}</p>
         </div>
         <div class="vc-arrow">
-          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6"/>
           </svg>
         </div>
         <div class="vc-stop r">
-          <div class="vc-label">Room</div>
-          <h3>${b.roomNumber ? "Room " + b.roomNumber : "—"}</h3>
-          <p>${b.roomType || ""}</p>
+          <div class="vc-label">Reserved Suite</div>
+          <h3>${b.roomNumber ? "Room " + b.roomNumber : "Suite"}</h3>
+          <p>${b.roomType || "Signature"}</p>
         </div>
       </div>
       <div class="voucher-dash"></div>
       <div class="voucher-table">
         <div class="vc-cell"><div class="vc-label">Check-in</div><span class="vc-value">${fmtDate(b.checkIn)}</span></div>
         <div class="vc-cell"><div class="vc-label">Check-out</div><span class="vc-value">${fmtDate(b.checkOut)}</span></div>
-        <div class="vc-cell"><div class="vc-label">Nights</div><span class="vc-value">${nights}</span></div>
-        <div class="vc-cell"><div class="vc-label">Guests</div><span class="vc-value">${b.guests}</span></div>
+        <div class="vc-cell"><div class="vc-label">Duration</div><span class="vc-value">${nights} night${nights === 1 ? "" : "s"}</span></div>
+        <div class="vc-cell"><div class="vc-label">Guests</div><span class="vc-value">${b.guests} guest${b.guests === 1 ? "" : "s"}</span></div>
       </div>
       <div class="voucher-foot">
-        <div class="voucher-total">Total paid<b>${inr(b.totalAmount)}</b></div>
-        <span class="status-badge status-confirmed">Confirmed</span>
+        <div class="voucher-total">Total Amount Paid<b>${inr(b.totalAmount)}</b></div>
+        <span class="status-badge status-confirmed">✓ Confirmed &amp; Held</span>
+      </div>
+      <div class="voucher-seal-row">
+        <span>Official Digital Stay Voucher · StayBook Guest Concierge</span>
+        <span>Valid for check-in upon arrival</span>
       </div>
     </div>`;
+}
+
+// Print Voucher Listener
+const btnPrintVoucher = $("#btnPrintVoucher");
+if (btnPrintVoucher) {
+  btnPrintVoucher.addEventListener("click", () => window.print());
 }
 
 // ---------- booking history ----------
 function maybeLoadHistory() {
   if (!localStorage.getItem(TOKEN_KEY)) {
     showView("auth");
-    toast("Sign in to see your bookings.", "info");
+    toast("Sign in to review your confirmed bookings.", "info");
     return;
   }
   loadHistory();
@@ -631,10 +693,10 @@ function renderHistory(bookings) {
   const nights = confirmed.reduce((s, b) => s + nightsBetween(b.checkIn, b.checkOut), 0);
   const spent = confirmed.reduce((s, b) => s + b.totalAmount, 0);
   stats.innerHTML = `
-    <div class="stat"><div class="stat-num">${bookings.length}</div><div class="stat-label">Total bookings</div></div>
-    <div class="stat"><div class="stat-num">${confirmed.length}</div><div class="stat-label">Active stays</div></div>
-    <div class="stat"><div class="stat-num">${nights}</div><div class="stat-label">Nights booked</div></div>
-    <div class="stat"><div class="stat-num">${inr(spent)}</div><div class="stat-label">Total spent</div></div>`;
+    <div class="stat"><div class="stat-num">${bookings.length}</div><div class="stat-label">Total Bookings</div></div>
+    <div class="stat"><div class="stat-num">${confirmed.length}</div><div class="stat-label">Active Stays</div></div>
+    <div class="stat"><div class="stat-num">${nights}</div><div class="stat-label">Nights Booked</div></div>
+    <div class="stat"><div class="stat-num">${inr(spent)}</div><div class="stat-label">Total Investment</div></div>`;
   stats.classList.remove("hidden");
 
   bookings.slice().reverse().forEach((b) => {
@@ -650,12 +712,12 @@ function renderHistory(bookings) {
           <b>${b.roomType || "Room"} · Room ${b.roomNumber || "—"}</b> &nbsp;|&nbsp;
           ${fmtDate(b.checkIn)} → ${fmtDate(b.checkOut)} &nbsp;|&nbsp; ${b.guests} guest${b.guests === 1 ? "" : "s"}
         </p>
-        <p class="history-meta" style="margin-top:4px">Booking ${b.id}</p>
+        <p class="history-meta" style="margin-top:4px">Reference: ${b.id}</p>
       </div>
       <div class="history-side">
         <div class="history-price">
-          <div class="price" style="font-size:17px">${inr(b.totalAmount)}</div>
-          <span class="status-badge ${badgeClass}" style="margin-top:6px;display:inline-block">${b.status}</span>
+          <div class="price" style="font-size:18px">${inr(b.totalAmount)}</div>
+          <span class="status-badge ${badgeClass}" style="margin-top:6px;display:inline-block">${cancelled ? "Cancelled" : "Confirmed"}</span>
         </div>
         ${!cancelled ? `<button class="cancel-btn" data-cancel="${b.id}">Cancel booking</button>` : ""}
       </div>`;
@@ -665,7 +727,7 @@ function renderHistory(bookings) {
       cancelBtn.addEventListener("click", (ev) => {
         ev.stopPropagation();
         pendingCancel = b.id;
-        openModal("Cancel this booking?", `Booking ${b.id} will be cancelled and Room ${b.roomNumber} will be freed up.`);
+        openModal("Cancel this booking?", `Booking ${b.id} will be cancelled and Room ${b.roomNumber} will be freed up for other guests.`);
       });
     }
 
