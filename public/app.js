@@ -2,6 +2,12 @@
  * StayBook · Curated Coastal Hotels & Stays — frontend logic
  * Plain vanilla JS: fetch() against the Express REST API,
  * then DOM manipulation (createElement / innerHTML / listeners) to render it.
+ *
+ * Implements:
+ * - Hero section inspired by Image 1 (Harmont aesthetic, scenery canvas, floating badges, radar, search capsule)
+ * - Mobile & Web App UI/UX inspired by Image 2 & 3 (greeting, filter drawer with histogram & steppers,
+ *   recently explored cards, modern hotel cards with favorite hearts, comprehensive hotel detail view
+ *   with photo thumbnails, property pills, review progress bars, sticky bottom bar, and bottom dock navigation)
  */
 
 const API_BASE = "/api";
@@ -9,6 +15,7 @@ const USER_KEY = "staybook.user";
 const TOKEN_KEY = "staybook.token";
 const ACCOUNT_KEY = "staybook.account";
 const SEARCH_KEY = "staybook.search";
+const FAV_KEY = "staybook.favorites";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -45,10 +52,58 @@ let currentRoom = null;
 let pendingRoom = null;
 let authMode = "login";
 let lastSearch = JSON.parse(localStorage.getItem(SEARCH_KEY) || "null") || null;
+let selectedRoomType = "";
+let adultsCount = 2;
+let childrenCount = 0;
+let cachedHotels = [];
 
 function saveSearch(search) {
   lastSearch = search;
   localStorage.setItem(SEARCH_KEY, JSON.stringify(search));
+}
+
+// ---------- favorites storage ----------
+function getFavorites() {
+  try {
+    return JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function isFavorite(hotelId) {
+  return getFavorites().includes(hotelId);
+}
+
+function toggleFavorite(hotelId) {
+  let favs = getFavorites();
+  if (favs.includes(hotelId)) {
+    favs = favs.filter((id) => id !== hotelId);
+    toast("Removed from saved stays.", "info");
+  } else {
+    favs.push(hotelId);
+    toast("Saved to your favorites! ❤️", "success");
+  }
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+  updateFavoritesBadge();
+  // Re-render favorites modal if open
+  if (!$("#favoritesModalRoot").classList.contains("hidden")) {
+    renderFavoritesList();
+  }
+}
+
+function updateFavoritesBadge() {
+  const count = getFavorites().length;
+  const badge = $("#favoritesCountBadge");
+  const headerBadge = $("#headerFavoritesBadge");
+  if (badge) {
+    badge.textContent = count;
+    badge.classList.toggle("hidden", count === 0);
+  }
+  if (headerBadge) {
+    headerBadge.textContent = count;
+    headerBadge.classList.toggle("hidden", count === 0);
+  }
 }
 
 // ---------- toasts ----------
@@ -123,6 +178,7 @@ function showView(name) {
   if (target) target.classList.add("active");
 
   $$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.nav === name));
+  $$(".dock-btn").forEach((b) => b.classList.toggle("active", b.dataset.nav === name));
 
   if (name === "search") loadHotels();
   if (name === "history") maybeLoadHistory();
@@ -140,10 +196,85 @@ $$(".back-btn").forEach((btn) => {
   });
 });
 
-// ---------- hero search band ----------
+// ---------- hero navigation & interactive buttons ----------
+const heroBookNowBtn = $("#heroBookNowBtn");
+if (heroBookNowBtn) {
+  heroBookNowBtn.addEventListener("click", () => {
+    const explore = $("#exploreSection");
+    if (explore) explore.scrollIntoView({ behavior: "smooth" });
+    $("#sLocation")?.focus();
+  });
+}
+
+$("#heroNavLocations")?.addEventListener("click", () => {
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+});
+
+$("#navRoomsLink")?.addEventListener("click", () => {
+  showView("search");
+  $("#exploreSection")?.scrollIntoView({ behavior: "smooth" });
+});
+$("#heroNavRooms")?.addEventListener("click", () => {
+  $("#exploreSection")?.scrollIntoView({ behavior: "smooth" });
+});
+
+$("#navExpLink")?.addEventListener("click", () => {
+  toast("✨ Curated Experiences: Private beach dinners, coastal cycling, and sunset cabanas.", "info");
+});
+$("#heroNavExp")?.addEventListener("click", () => {
+  toast("✨ Curated Experiences: Private beach dinners, coastal cycling, and sunset cabanas.", "info");
+});
+
+$("#navContactLink")?.addEventListener("click", () => {
+  toast("📞 Concierge Support: +91 (800) STAY-BOOK · Available 24/7", "info");
+});
+$("#heroNavContact")?.addEventListener("click", () => {
+  toast("📞 Concierge Support: +91 (800) STAY-BOOK · Available 24/7", "info");
+});
+
+// Interactive Badges in Hero
+$("#badgeWifi")?.addEventListener("click", () => {
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+  toast("📶 All signature suites feature verified 100+ Mbps fiber Wi-Fi.", "success");
+});
+
+$("#badgeCheckin")?.addEventListener("click", () => {
+  toast("🔑 Contactless self check-in available 24/7 via mobile voucher code.", "info");
+});
+
+$("#badgePet")?.addEventListener("click", () => {
+  toast("🐾 Pet-friendly accommodations available across select coastal cabins.", "info");
+});
+
+// Radar Widget Button
+$("#heroRadarWidget")?.addEventListener("click", () => {
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+  toast("📍 Live GPS Map: 4 premium destinations along the Andhra coastline.", "info");
+});
+
+// Rating Widget Button
+$("#heroRatingWidget")?.addEventListener("click", () => {
+  $("#filterRating").value = "4.5";
+  $("#chipRating")?.classList.add("active");
+  loadHotels();
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+  toast("★ Filtered for top-rated stays (4.5★ and above).", "success");
+});
+
+// Notifications bell
+$("#btnHeaderBell")?.addEventListener("click", () => {
+  toast("🔔 Welcome to StayBook! Handpicked boutique hotels ready for instant booking.", "info");
+});
+
+// ---------- hero search capsule form ----------
 $("#heroSearch").addEventListener("submit", (e) => {
   e.preventDefault();
-  $("#filterLocation").value = $("#sLocation").value.trim();
+  const locVal = $("#sLocation").value.trim();
+  $("#filterLocation").value = locVal;
 
   const checkIn = $("#sCheckIn").value;
   const checkOut = $("#sCheckOut").value;
@@ -159,6 +290,10 @@ $("#heroSearch").addEventListener("submit", (e) => {
     saveSearch({ checkIn, checkOut, guests });
   }
   showView("search");
+  loadHotels();
+
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
 });
 
 // Trending destination quick tags
@@ -168,26 +303,40 @@ $$(".quick-tag-btn").forEach((btn) => {
     $("#sLocation").value = dest;
     $("#filterLocation").value = dest;
     loadHotels();
-    const toolbar = $(".results-toolbar");
-    if (toolbar) toolbar.scrollIntoView({ behavior: "smooth", block: "start" });
+    const explore = $("#exploreSection");
+    if (explore) explore.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
 
 // Minimum selectable dates (prevent past dates)
 const todayIso = new Date().toISOString().split("T")[0];
-["sCheckIn", "sCheckOut", "checkIn", "checkOut"].forEach((id) => {
+["sCheckIn", "sCheckOut", "checkIn", "checkOut", "sheetCheckIn", "sheetCheckOut"].forEach((id) => {
   const el = $(`#${id}`);
   if (el) el.min = todayIso;
 });
-$("#sCheckIn").addEventListener("change", () => {
+$("#sCheckIn")?.addEventListener("change", () => {
   if ($("#sCheckIn").value) {
     $("#sCheckOut").min = $("#sCheckIn").value;
   }
 });
-$("#checkIn").addEventListener("change", () => {
+$("#sheetCheckIn")?.addEventListener("change", () => {
+  if ($("#sheetCheckIn").value) {
+    $("#sheetCheckOut").min = $("#sheetCheckIn").value;
+  }
+});
+$("#checkIn")?.addEventListener("change", () => {
   if ($("#checkIn").value) {
     $("#checkOut").min = $("#checkIn").value;
   }
+});
+
+// Quick search input in explore header
+$("#filterLocation")?.addEventListener("input", () => {
+  // debounce search
+  clearTimeout(window._searchTimer);
+  window._searchTimer = setTimeout(() => {
+    loadHotels();
+  }, 350);
 });
 
 // ---------- hotels: search + filter + sort ----------
@@ -210,10 +359,12 @@ async function loadHotels() {
   if (minPrice) params.append("minPrice", minPrice);
   if (maxPrice) params.append("maxPrice", maxPrice);
   if (rating) params.append("minRating", rating);
+  if (selectedRoomType) params.append("roomType", selectedRoomType);
   if (sort && sort !== "recommended") params.append("sort", sort);
 
   try {
     const hotels = await api(`/hotels?${params.toString()}`);
+    cachedHotels = hotels;
     renderHotelList(hotels);
   } catch (err) {
     container.innerHTML = "";
@@ -221,6 +372,7 @@ async function loadHotels() {
   }
 }
 
+// Render Modern Hotel Cards matching Image 2 & 3
 function renderHotelList(hotels) {
   const container = $("#hotelList");
   const empty = $("#searchEmpty");
@@ -235,79 +387,440 @@ function renderHotelList(hotels) {
   }
 
   hotels.forEach((hotel) => {
+    const isFav = isFavorite(hotel.id);
     const card = document.createElement("article");
-    card.className = "card hotel-card is-clickable";
+    card.className = "card modern-hotel-card is-clickable";
     card.innerHTML = `
       <div class="card-media">
         <img src="${hotel.image}" alt="${hotel.name}" loading="lazy">
-        <span class="rating-chip"><span class="star">★</span> ${Number(hotel.rating).toFixed(1)}</span>
+        <button type="button" class="btn-heart${isFav ? " active" : ""}" data-fav="${hotel.id}" aria-label="Save ${hotel.name} to favorites" title="Favorite">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
         ${hotel.eligible ? `<span class="verified-ribbon"><span class="tick">✓</span> Quality Checked</span>` : ""}
       </div>
       <div class="card-body">
-        <h3>${hotel.name}</h3>
+        <div class="card-title-price-row">
+          <h3 class="card-hotel-name">${hotel.name}</h3>
+          <span class="card-price">${inr(hotel.price)}<small>/night</small></span>
+        </div>
+
+        <div class="card-rating-line">
+          <span class="rating-star">★</span>
+          <span class="rating-score">${Number(hotel.rating).toFixed(2)}</span>
+          <span class="rating-count">(${Math.round(hotel.rating * 48)} reviews)</span>
+        </div>
+
         <p class="card-meta">
           <svg class="meta-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>${hotel.location}</span>
-          ${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}
+          <span>${hotel.location} · 3.5 km to center</span>
         </p>
+
         <div class="amenity-chips">
-          ${hotel.amenities.slice(0, 3).map((a) => `<span class="chip">${a}</span>`).join("")}
+          ${(hotel.amenities || []).slice(0, 3).map((a) => `<span class="chip">${a}</span>`).join("")}
           <span class="chip rooms-chip">${hotel.availableRooms ?? "—"} rooms free</span>
         </div>
+
         <div class="card-foot">
-          <div class="price-wrap">
-            <span class="price-prefix">From</span>
-            <span class="price">${inr(hotel.price)} <small>/ night</small></span>
-          </div>
-          <button class="btn btn-primary hotel-card-action" aria-label="View rooms at ${hotel.name}">View suites &rarr;</button>
+          <button class="btn btn-dark hotel-card-action" aria-label="View suites at ${hotel.name}">View suites &rarr;</button>
         </div>
       </div>`;
-    card.addEventListener("click", () => openHotel(hotel.id));
+
+    // Click on card opens hotel details
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".btn-heart")) return;
+      openHotel(hotel.id);
+    });
+
+    // Favorite heart button toggle
+    const heartBtn = card.querySelector(".btn-heart");
+    if (heartBtn) {
+      heartBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleFavorite(hotel.id);
+        const favNow = isFavorite(hotel.id);
+        heartBtn.classList.toggle("active", favNow);
+        heartBtn.querySelector("svg").setAttribute("fill", favNow ? "currentColor" : "none");
+      });
+    }
+
     container.appendChild(card);
   });
 }
 
-$("#hotelFilters").addEventListener("submit", (event) => {
+$("#hotelFilters")?.addEventListener("submit", (event) => {
   event.preventDefault();
   loadHotels();
 });
-$("#sortBy").addEventListener("change", loadHotels);
-$("#btnReset").addEventListener("click", () => {
-  ["filterLocation", "filterMinPrice", "filterMaxPrice", "filterRating"].forEach((id) => ($(`#${id}`).value = ""));
+$("#sortBy")?.addEventListener("change", loadHotels);
+
+// Filter reset button
+$("#btnReset")?.addEventListener("click", () => {
+  ["filterLocation", "filterMinPrice", "filterMaxPrice", "filterRating", "sLocation", "sheetLocation", "sheetMinPrice", "sheetMaxPrice"].forEach((id) => {
+    const el = $(`#${id}`);
+    if (el) el.value = "";
+  });
+  selectedRoomType = "";
+  $$(".prop-pill").forEach((p) => p.classList.toggle("active", p.dataset.type === ""));
+  $$(".pill-chip-btn").forEach((p) => p.classList.remove("active"));
+  $("#chipAllPlaces")?.classList.add("active");
   $("#sortBy").value = "recommended";
   loadHotels();
-});
-$("#btnClearAll").addEventListener("click", () => {
-  $("#btnReset").click();
+  toast("Filters reset to default.");
 });
 
-// ---------- hotel detail + rooms ----------
+$("#btnClearAll")?.addEventListener("click", () => {
+  $("#btnReset")?.click();
+});
+
+// Quick pill filter chips
+$("#chipAllPlaces")?.addEventListener("click", () => {
+  $("#btnReset")?.click();
+});
+
+$("#chipRating")?.addEventListener("click", (e) => {
+  const active = e.currentTarget.classList.toggle("active");
+  $("#filterRating").value = active ? "4.5" : "";
+  loadHotels();
+});
+
+$("#chipQuality")?.addEventListener("click", (e) => {
+  const active = e.currentTarget.classList.toggle("active");
+  if (active) {
+    // filter only eligible
+    const filtered = cachedHotels.filter((h) => h.eligible);
+    renderHotelList(filtered);
+    toast("Showing verified Quality-Checked hotels.");
+  } else {
+    renderHotelList(cachedHotels);
+  }
+});
+
+$("#chipUnder3000")?.addEventListener("click", (e) => {
+  const active = e.currentTarget.classList.toggle("active");
+  $("#filterMaxPrice").value = active ? "3000" : "";
+  loadHotels();
+});
+
+// ---------- Filter Drawer Modal (Image 2 left & Image 3 top-right) ----------
+const filterModalRoot = $("#filterModalRoot");
+const btnOpenFilterModal = $("#btnOpenFilterModal");
+const chipFilterModal = $("#chipFilterModal");
+const btnCloseFilterModal = $("#btnCloseFilterModal");
+
+function openFilterModal() {
+  $("#sheetLocation").value = $("#filterLocation").value;
+  $("#sheetMinPrice").value = $("#filterMinPrice").value;
+  $("#sheetMaxPrice").value = $("#filterMaxPrice").value;
+  $("#sheetCheckIn").value = $("#sCheckIn").value;
+  $("#sheetCheckOut").value = $("#sCheckOut").value;
+  filterModalRoot.classList.remove("hidden");
+}
+function closeFilterModal() {
+  filterModalRoot.classList.add("hidden");
+}
+
+btnOpenFilterModal?.addEventListener("click", openFilterModal);
+chipFilterModal?.addEventListener("click", openFilterModal);
+btnCloseFilterModal?.addEventListener("click", closeFilterModal);
+filterModalRoot?.addEventListener("click", (e) => {
+  if (e.target === filterModalRoot) closeFilterModal();
+});
+
+// Stepper controls
+$("#btnAdultsDec")?.addEventListener("click", () => {
+  if (adultsCount > 1) {
+    adultsCount--;
+    $("#adultsVal").textContent = adultsCount;
+    $("#sGuests").value = String(Math.min(6, adultsCount));
+  }
+});
+$("#btnAdultsInc")?.addEventListener("click", () => {
+  if (adultsCount < 8) {
+    adultsCount++;
+    $("#adultsVal").textContent = adultsCount;
+    $("#sGuests").value = String(Math.min(6, adultsCount));
+  }
+});
+$("#btnChildrenDec")?.addEventListener("click", () => {
+  if (childrenCount > 0) {
+    childrenCount--;
+    $("#childrenVal").textContent = childrenCount;
+  }
+});
+$("#btnChildrenInc")?.addEventListener("click", () => {
+  if (childrenCount < 6) {
+    childrenCount++;
+    $("#childrenVal").textContent = childrenCount;
+  }
+});
+
+// Property type pills inside drawer
+$$(".prop-pill").forEach((pill) => {
+  pill.addEventListener("click", () => {
+    $$(".prop-pill").forEach((p) => p.classList.remove("active"));
+    pill.classList.add("active");
+    selectedRoomType = pill.dataset.type || "";
+  });
+});
+
+// Sheet Reset & Submit
+$("#btnSheetReset")?.addEventListener("click", () => {
+  $("#sheetLocation").value = "";
+  $("#sheetMinPrice").value = "";
+  $("#sheetMaxPrice").value = "";
+  $("#sheetCheckIn").value = "";
+  $("#sheetCheckOut").value = "";
+  adultsCount = 2;
+  childrenCount = 0;
+  $("#adultsVal").textContent = "2";
+  $("#childrenVal").textContent = "0";
+  selectedRoomType = "";
+  $$(".prop-pill").forEach((p) => p.classList.toggle("active", p.dataset.type === ""));
+  $("#btnReset")?.click();
+  closeFilterModal();
+});
+
+$("#sheetFilterForm")?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  $("#filterLocation").value = $("#sheetLocation").value.trim();
+  $("#filterMinPrice").value = $("#sheetMinPrice").value;
+  $("#filterMaxPrice").value = $("#sheetMaxPrice").value;
+  $("#sCheckIn").value = $("#sheetCheckIn").value;
+  $("#sCheckOut").value = $("#sheetCheckOut").value;
+  saveSearch({
+    checkIn: $("#sheetCheckIn").value,
+    checkOut: $("#sheetCheckOut").value,
+    guests: adultsCount + childrenCount
+  });
+  closeFilterModal();
+  loadHotels();
+  const explore = $("#exploreSection");
+  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+});
+
+// ---------- Favorites Drawer Modal ----------
+const favoritesModalRoot = $("#favoritesModalRoot");
+const btnOpenFavorites = $("#btnOpenFavorites");
+const btnHeaderSaved = $("#btnHeaderSaved");
+const btnCloseFavModal = $("#btnCloseFavModal");
+
+function openFavoritesDrawer() {
+  renderFavoritesList();
+  favoritesModalRoot.classList.remove("hidden");
+}
+
+btnOpenFavorites?.addEventListener("click", openFavoritesDrawer);
+btnHeaderSaved?.addEventListener("click", openFavoritesDrawer);
+btnCloseFavModal?.addEventListener("click", () => {
+  favoritesModalRoot.classList.add("hidden");
+});
+favoritesModalRoot?.addEventListener("click", (e) => {
+  if (e.target === favoritesModalRoot) favoritesModalRoot.classList.add("hidden");
+});
+
+async function renderFavoritesList() {
+  const container = $("#favoritesList");
+  const favIds = getFavorites();
+  if (favIds.length === 0) {
+    container.innerHTML = `
+      <div class="fav-empty">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <h4>No saved escapes yet</h4>
+        <p>Tap the heart icon on any hotel card to save your favourite retreats for later.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = skeletonGrid(favIds.length, false);
+  try {
+    const allHotels = await api("/hotels");
+    const favHotels = allHotels.filter((h) => favIds.includes(h.id));
+    container.innerHTML = "";
+    favHotels.forEach((h) => {
+      const item = document.createElement("div");
+      item.className = "fav-card-item";
+      item.innerHTML = `
+        <img src="${h.image}" alt="${h.name}">
+        <div class="fav-item-info">
+          <h4>${h.name}</h4>
+          <p class="fav-place">📍 ${h.location}</p>
+          <span class="fav-price">${inr(h.price)} <small>/ night</small></span>
+        </div>
+        <div class="fav-item-actions">
+          <button class="btn btn-dark btn-sm fav-open-btn">View</button>
+          <button class="fav-remove-btn" title="Remove">&times;</button>
+        </div>`;
+      item.querySelector(".fav-open-btn").addEventListener("click", () => {
+        favoritesModalRoot.classList.add("hidden");
+        openHotel(h.id);
+      });
+      item.querySelector(".fav-remove-btn").addEventListener("click", () => {
+        toggleFavorite(h.id);
+        renderFavoritesList();
+      });
+      container.appendChild(item);
+    });
+  } catch {
+    container.innerHTML = "<p>Unable to load favorites right now.</p>";
+  }
+}
+
+// ---------- hotel detail + rooms (Image 2 Center & Image 3 Reference) ----------
 async function openHotel(hotelId) {
   try {
     const hotel = await api(`/hotels/${hotelId}`);
     currentHotel = hotel;
 
+    const rooms = await api(`/hotels/${hotelId}/rooms`);
+
+    // Extract property images for gallery
+    const galleryShots = [
+      hotel.image,
+      rooms[0]?.bedImage || "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800",
+      rooms[0]?.bathImage || "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800",
+      rooms[0]?.balconyImage || "https://images.unsplash.com/photo-1521401830884-6c03c1c87ebb?w=800"
+    ].filter(Boolean);
+
     $("#hotelDetail").innerHTML = `
-      <div class="hotel-hero">
-        <img src="${hotel.image}" alt="${hotel.name}">
-        <span class="rating-chip"><span class="star">★</span> ${Number(hotel.rating).toFixed(1)}</span>
-        ${hotel.eligible ? `<span class="verified-ribbon"><span class="tick">✓</span> Quality Checked</span>` : ""}
-      </div>
-      <div class="hotel-info">
-        <h2>${hotel.name}</h2>
-        <p class="card-meta">
-          <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>${hotel.location}</span>
-          ${hotel.eligible ? ` <span class="eligible-chip"><span class="tick">✓</span> Quality-checked</span>` : ""}
-        </p>
-        <p class="hotel-price-line">${inr(hotel.price)} <small>/ night &middot; starting rate</small></p>
-        <div class="amenities-hotel">
-          ${hotel.amenities.map((a) => `<span class="chip">${a}</span>`).join("")}
+      <!-- Gallery with Main Hero + Thumbnails Strip matching Image 2 & 3 -->
+      <div class="modern-detail-gallery">
+        <div class="detail-hero-frame">
+          <img id="detailHeroImg" src="${galleryShots[0]}" alt="${hotel.name}">
+          ${hotel.eligible ? `<span class="verified-ribbon verified-floating"><span class="tick">✓</span> Quality Checked</span>` : ""}
         </div>
-      </div>`;
+        <div class="detail-gallery-thumbs">
+          ${galleryShots.slice(0, 3).map((src, idx) => `
+            <div class="detail-thumb-item${idx === 0 ? " active" : ""}" data-src="${src}">
+              <img src="${src}" alt="Preview ${idx + 1}">
+            </div>
+          `).join("")}
+          <div class="detail-thumb-item thumb-more" data-src="${galleryShots[3] || galleryShots[0]}">
+            <img src="${galleryShots[3] || galleryShots[0]}" alt="More photos">
+            <div class="thumb-more-overlay">+48 more</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hotel Info and Pricing matching Image 2 Center -->
+      <div class="modern-detail-info">
+        <div class="detail-title-price-row">
+          <div>
+            <h2 class="detail-hotel-name">${hotel.name}</h2>
+            <p class="detail-location-sub">
+              <svg class="meta-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>${hotel.location}, Andhra Pradesh</span>
+            </p>
+          </div>
+          <div class="detail-price-box">
+            <span class="detail-price-num">${inr(hotel.price)}</span>
+            <small>/night</small>
+          </div>
+        </div>
+
+        <!-- Property Details Metrics Pills matching Image 2 -->
+        <div class="property-metrics-row">
+          <div class="metric-pill">
+            <span class="metric-icon">📐</span>
+            <span class="metric-text">150 m²</span>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-icon">👥</span>
+            <span class="metric-text">4 guests</span>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-icon">🛁</span>
+            <span class="metric-text">1 bath</span>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-icon">🛏️</span>
+            <span class="metric-text">2 beds</span>
+          </div>
+        </div>
+
+        <!-- Property Description with Read More Toggle -->
+        <div class="property-desc-block">
+          <p class="property-desc-text" id="propDescText">
+            ${hotel.name} features refined coastal architecture, handpicked suites, diverse local and continental dining options, luxury wellness spa, and round-the-clock personal guest concierge. Enjoy private balcony sunrises and verified hygiene safety checks.
+          </p>
+          <button type="button" class="btn-read-more" id="btnToggleDesc">Read more</button>
+        </div>
+
+        <!-- Rating & Reviews Breakdown matching Image 2 Center -->
+        <div class="rating-reviews-card">
+          <div class="rr-header">
+            <span class="rr-star">★</span>
+            <span class="rr-score">${Number(hotel.rating).toFixed(2)}</span>
+            <span class="rr-dot">·</span>
+            <span class="rr-count">217 reviews</span>
+          </div>
+          <div class="rr-bars">
+            <div class="rr-bar-row">
+              <span class="rr-bar-label">Communication</span>
+              <div class="rr-bar-track"><div class="rr-bar-fill" style="width: 100%"></div></div>
+              <span class="rr-bar-val">5.0</span>
+            </div>
+            <div class="rr-bar-row">
+              <span class="rr-bar-label">Cleanliness</span>
+              <div class="rr-bar-track"><div class="rr-bar-fill" style="width: 98%"></div></div>
+              <span class="rr-bar-val">4.9</span>
+            </div>
+            <div class="rr-bar-row">
+              <span class="rr-bar-label">Location &amp; Comfort</span>
+              <div class="rr-bar-track"><div class="rr-bar-fill" style="width: 96%"></div></div>
+              <span class="rr-bar-val">4.8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Bottom Booking Bar (Image 2 Center) -->
+      <div class="sticky-detail-booking-bar">
+        <div class="sticky-price-wrap">
+          <span class="sticky-price-label">Starting from</span>
+          <span class="sticky-price-val">${inr(hotel.price)} <small>/ night</small></span>
+        </div>
+        <button type="button" class="btn btn-dark sticky-book-btn" id="btnScrollToRooms">Select Suite</button>
+      </div>
+    `;
+
+    // Gallery thumbnail click listener
+    $$(".detail-thumb-item").forEach((thumb) => {
+      thumb.addEventListener("click", () => {
+        const src = thumb.dataset.src;
+        if (src) {
+          $("#detailHeroImg").src = src;
+          $$(".detail-thumb-item").forEach((t) => t.classList.remove("active"));
+          thumb.classList.add("active");
+        }
+      });
+    });
+
+    // Read more toggle
+    const toggleDescBtn = $("#btnToggleDesc");
+    const descText = $("#propDescText");
+    let expanded = false;
+    toggleDescBtn?.addEventListener("click", () => {
+      expanded = !expanded;
+      descText.classList.toggle("expanded", expanded);
+      toggleDescBtn.textContent = expanded ? "Read less" : "Read more";
+    });
+
+    // Sticky bar button scrolls to suites
+    $("#btnScrollToRooms")?.addEventListener("click", () => {
+      const roomHeading = $("#roomSectionTitle");
+      if (roomHeading) roomHeading.scrollIntoView({ behavior: "smooth" });
+    });
+
+    // Share button listener
+    $("#btnShareHotel")?.addEventListener("click", () => {
+      navigator.clipboard?.writeText(window.location.href);
+      toast("Property link copied to clipboard!");
+    });
 
     $("#roomSectionTitle").textContent = `Available Suites at ${hotel.name}`;
-    renderRooms(await api(`/hotels/${hotelId}/rooms`));
+    renderRooms(rooms);
     showView("hotel");
     window.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
@@ -335,7 +848,7 @@ function renderRooms(rooms) {
   rooms.forEach((room) => {
     const free = room.status === "available";
     const card = document.createElement("article");
-    card.className = `card room-card${free ? " is-clickable" : ""}`;
+    card.className = `card modern-room-card${free ? " is-clickable" : ""}`;
     card.innerHTML = `
       <div class="room-top">
         <span class="room-type-badge">${room.roomType}</span>
@@ -361,7 +874,7 @@ function renderRooms(rooms) {
         <div class="price-wrap">
           <span class="price">${inr(room.price)} <small>/ night</small></span>
         </div>
-        ${free ? `<button class="btn btn-coral">Reserve room</button>` : `<button class="btn btn-ghost" disabled>Reserved</button>`}
+        ${free ? `<button class="btn btn-dark">Reserve room</button>` : `<button class="btn btn-ghost" disabled>Reserved</button>`}
       </div>`;
     if (free) card.addEventListener("click", () => openBooking(room));
     container.appendChild(card);
@@ -371,9 +884,26 @@ function renderRooms(rooms) {
 // ---------- guest account / JWT session ----------
 function updateAuthButton() {
   const button = $("#authButton");
+  const greeting = $("#greetingUser");
   const signedIn = !!localStorage.getItem(TOKEN_KEY);
-  button.textContent = signedIn ? "Sign out" : "Sign in";
-  button.dataset.nav = signedIn ? "signout" : "auth";
+  const accountRaw = localStorage.getItem(ACCOUNT_KEY);
+  let userName = "Explorer";
+
+  if (accountRaw) {
+    try {
+      const acc = JSON.parse(accountRaw);
+      if (acc.name) userName = acc.name.split(" ")[0];
+    } catch {}
+  }
+
+  if (greeting) {
+    greeting.textContent = signedIn ? `Hey, ${userName} 👋` : "Hey, Explorer 👋";
+  }
+
+  if (button) {
+    button.textContent = signedIn ? "Sign out" : "Sign in";
+    button.dataset.nav = signedIn ? "signout" : "auth";
+  }
 }
 
 function setAuthMode(mode) {
@@ -445,6 +975,7 @@ $("#authForm").addEventListener("submit", async (event) => {
 
 updateAuthButton();
 setAuthMode("login");
+updateFavoritesBadge();
 
 // ---------- booking form ----------
 function openBooking(room) {
@@ -541,7 +1072,7 @@ function syncOrderPanel() {
 }
 
 ["checkIn", "checkOut", "guests"].forEach((id) =>
-  $(`#${id}`).addEventListener("change", syncOrderPanel)
+  $(`#${id}`)?.addEventListener("change", syncOrderPanel)
 );
 
 $("#bookingForm").addEventListener("submit", async (e) => {
@@ -597,7 +1128,7 @@ function renderVoucher(b) {
     <div class="voucher">
       <div class="voucher-top">
         <div class="voucher-brand-group">
-          <span class="voucher-brand">StayBook<span>.</span></span>
+          <span class="voucher-brand">Harmont<span>.</span></span>
           <span class="voucher-concierge-tag">Luxury Stay Voucher</span>
         </div>
         <div class="voucher-code">
@@ -656,7 +1187,7 @@ function maybeLoadHistory() {
   loadHistory();
 }
 
-$("#btnLoadHistory").addEventListener("click", loadHistory);
+$("#btnLoadHistory")?.addEventListener("click", loadHistory);
 
 async function loadHistory() {
   if (!localStorage.getItem(TOKEN_KEY)) return maybeLoadHistory();
@@ -738,7 +1269,7 @@ function renderHistory(bookings) {
   });
 }
 
-// star-rating widget for confirmed bookings (feeds the admin's feedback norms)
+// star-rating widget for confirmed bookings
 function attachFeedback(item, b) {
   const side = item.querySelector(".history-side");
   const fb = document.createElement("div");
@@ -783,7 +1314,7 @@ function attachFeedback(item, b) {
 }
 
 // ---------- confirm → view history shortcut ----------
-$("#btnGoHistory").addEventListener("click", () => showView("history"));
+$("#btnGoHistory")?.addEventListener("click", () => showView("history"));
 
 // ---------- initial load ----------
 showView("search");
