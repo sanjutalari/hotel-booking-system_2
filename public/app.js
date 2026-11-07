@@ -192,31 +192,57 @@ $$("[data-nav]").forEach((el) => {
 
 $$(".back-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    if (btn.dataset.back) showView(btn.dataset.back);
+    if (btn.dataset.back) {
+      showView(btn.dataset.back);
+      if (btn.dataset.back === "search") {
+        setTimeout(() => {
+          $("#exploreSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 60);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
   });
 });
+
+// Navigation to rooms: scrolls down to the rooms/suites section, never jumping to the hero top
+function navigateToRooms() {
+  if ($("#view-hotel")?.classList.contains("active")) {
+    const suites = $("#roomSectionTitle") || $("#roomList");
+    if (suites) {
+      suites.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+  }
+  showView("search");
+  setTimeout(() => {
+    const explore = $("#exploreSection");
+    if (explore) explore.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 80);
+}
 
 // ---------- hero navigation & interactive buttons ----------
 const heroBookNowBtn = $("#heroBookNowBtn");
 if (heroBookNowBtn) {
   heroBookNowBtn.addEventListener("click", () => {
     const explore = $("#exploreSection");
-    if (explore) explore.scrollIntoView({ behavior: "smooth" });
+    if (explore) explore.scrollIntoView({ behavior: "smooth", block: "start" });
     $("#sLocation")?.focus();
   });
 }
 
 $("#heroNavLocations")?.addEventListener("click", () => {
   const explore = $("#exploreSection");
-  if (explore) explore.scrollIntoView({ behavior: "smooth" });
+  if (explore) explore.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-$("#navRoomsLink")?.addEventListener("click", () => {
-  showView("search");
-  $("#exploreSection")?.scrollIntoView({ behavior: "smooth" });
+$("#navRoomsLink")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  navigateToRooms();
 });
-$("#heroNavRooms")?.addEventListener("click", () => {
-  $("#exploreSection")?.scrollIntoView({ behavior: "smooth" });
+$("#heroNavRooms")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  navigateToRooms();
 });
 
 $("#navExpLink")?.addEventListener("click", () => {
@@ -398,7 +424,6 @@ function renderHotelList(hotels) {
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
-        ${hotel.eligible ? `<span class="verified-ribbon"><span class="tick">✓</span> Quality Checked</span>` : ""}
       </div>
       <div class="card-body">
         <div class="card-title-price-row">
@@ -688,7 +713,6 @@ async function openHotel(hotelId) {
       <div class="modern-detail-gallery">
         <div class="detail-hero-frame">
           <img id="detailHeroImg" src="${galleryShots[0]}" alt="${hotel.name}">
-          ${hotel.eligible ? `<span class="verified-ribbon verified-floating"><span class="tick">✓</span> Quality Checked</span>` : ""}
         </div>
         <div class="detail-gallery-thumbs">
           ${galleryShots.slice(0, 3).map((src, idx) => `
@@ -982,10 +1006,14 @@ function openBooking(room) {
   if (!localStorage.getItem(TOKEN_KEY)) {
     pendingRoom = room;
     showView("auth");
-    toast("Please sign in before confirming your suite.", "info");
+    toast("Please sign in or create an account to reserve this room.", "info");
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
   currentRoom = room;
+  if (!currentHotel && room.hotelId && cachedHotels.length) {
+    currentHotel = cachedHotels.find((h) => h.id === room.hotelId) || null;
+  }
   $("#bookingHotelName").textContent = currentHotel ? currentHotel.name : "—";
   $("#bookingHotelPlace").textContent = currentHotel
     ? `📍 ${currentHotel.location}`

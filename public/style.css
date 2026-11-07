@@ -89,6 +89,15 @@ body {
 
 .hidden { display: none !important; }
 
+/* ---------------- Single-Page Multi-View Routing ---------------- */
+.view {
+  display: none !important;
+}
+
+.view.active {
+  display: block !important;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;
@@ -1115,21 +1124,9 @@ img {
   color: var(--heart-red);
 }
 
-.verified-ribbon {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--emerald);
-  font-size: 11.5px;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  z-index: 2;
+.verified-ribbon,
+.verified-floating {
+  display: none !important;
 }
 
 .card-body {
